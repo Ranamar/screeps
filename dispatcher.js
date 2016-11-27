@@ -11,7 +11,7 @@ var lodash = require('lodash');
  
 var convertTaskToOrder = function(task) {
     var rv = null;
-    console.log('task', task);
+    // console.log('task', task);
     if(task === 'harvest') {
         rv = { job: 'harvest' };
     }
@@ -44,7 +44,7 @@ var convertTaskToOrder = function(task) {
             }
         }
         else {
-            console.log('received structure with no task', task, task.hits);
+            // console.log('received structure with no task', task, task.hits);
         }
     }
     // console.log('converted Task', rv, rv.job);
@@ -55,13 +55,13 @@ var assignWorkerJob = function(creep, tasks) {
     var task = null;
     //energy pickup - decays 50% in 600 turns
     if(tasks.droppedEnergy.length > 0) {
-        console.log('>>', creep.name, 'checking dropped energy');
+        // console.log('>>', creep.name, 'checking dropped energy');
         for(var i = 0; i < tasks.droppedEnergy.length; i++) {
             var energyTarget = tasks.droppedEnergy[i];
-            console.log('>>', energyTarget, energyTarget.amount, energyTarget.pos);
+            // console.log('>>', energyTarget, energyTarget.amount, energyTarget.pos);
             if(energyTarget.amount > 40 && creep.carryCapacity - creep.carry.energy >= 50) {
                 tasks.droppedEnergy = tasks.droppedEnergy.slice(i, 1);
-                console.log('>>', creep.name, 'assigned', energyTarget);
+                // console.log('>>', creep.name, 'assigned', energyTarget);
                 return {
                     job: 'pickup',
                     target: energyTarget.id

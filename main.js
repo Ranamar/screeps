@@ -5,9 +5,10 @@ var util = require('util');
 var towerFirer = require('towerFirer');
 var dispatcher = require('dispatcher');
 var worker = require('worker.base');
+var visualizer = require('visualizer');
 
 module.exports.loop = function () {
-
+    console.log('--------');
     towerFirer.fire('W1N69');
 
     var tasks = dispatcher.findTasks(Game.spawns['Spawn1'].room);
@@ -50,6 +51,7 @@ module.exports.loop = function () {
                 worker.run(creep);
             }
         }
+        visualizer.logStep(creep);
     }
     console.log('cpu used this tick (end of unit AI):', Game.cpu.getUsed());
     
@@ -72,11 +74,11 @@ module.exports.loop = function () {
     //     console.log('spawning builder');
     // }
     else if(spawner.room.memory.noEnergy == true && spawner.room.memory.targetWorkerCount > 8) {
-        spawner.room.memory.targetWorkerCount -= 0.01;
+        spawner.room.memory.targetWorkerCount -= 0.001;
         console.log('target workers', spawner.room.memory.targetWorkerCount);
     }
     else if(spawner.room.energyAvailable == Game.spawns['Spawn1'].room.energyCapacityAvailable) {
-        spawner.room.memory.targetWorkerCount += 1/(genericCount*2);
+        spawner.room.memory.targetWorkerCount += 1/(genericCount*16);
         console.log('target workers', spawner.room.memory.targetWorkerCount);
         if(spawner.room.memory.targetWorkerCount > genericCount) {
             util.createScalingCreep(spawner, 'generic');
