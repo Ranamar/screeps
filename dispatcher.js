@@ -31,7 +31,7 @@ var convertTaskToOrder = function(task) {
         };
     }
     else {
-        if(structureNeedsEnergy(task)) {
+        if(structureNeedsEnergyExpanded(task)) {
             rv = {
                 job: 'store',
                 target: task.id
@@ -99,15 +99,26 @@ var assignWorkerJob = function(creep, tasks) {
         if(tasks.needEnergy.length > 0 /*&& Math.random() < 0.3*/) {
             task = tasks.needEnergy.shift();
         }
-        //We skip the spawner up above; save it for last
-        else if(creep.room.spawns['Spawn1'].energy < creep.room.spawns['Spawn1'].energyCapacity) {
-            task = creep.room.spawns['Spawn1'];
+        // We skip the spawner up above; save it for last
+        else if(Game.spawns['Spawn1'].energy < Game.spawns['Spawn1'].energyCapacity) {
+            task = Game.spawns['Spawn1'];
         }
         else {
             task = 'upgrade';
         }
     }
     return convertTaskToOrder(task);
+}
+
+var structureNeedsEnergyExpanded = function(structure) {
+    if(!structure) {
+        console.log('got bad structure', structure);
+        return false;
+    }
+    return (structure.structureType == STRUCTURE_EXTENSION ||
+            structure.structureType == STRUCTURE_SPAWN ||     //disable so it can possibly use the energy from reclaiming creeps that go by; we generally don't miss it
+            structure.structureType == STRUCTURE_TOWER)
+            && structure.energy < structure.energyCapacity;
 }
 
 var structureNeedsEnergy = function(structure) {
