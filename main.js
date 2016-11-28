@@ -7,6 +7,8 @@ var dispatcher = require('dispatcher');
 var worker = require('worker.base');
 var visualizer = require('visualizer');
 
+var MINIMUM_WORKERS = 6;
+
 module.exports.loop = function () {
     console.log('--------');
     towerFirer.fire('W1N69');
@@ -27,18 +29,18 @@ module.exports.loop = function () {
             var success = Game.spawns['Spawn1'].recycleCreep(creep);
             console.log('reclaiming creep', creep.name, creep.ticksToLive, success);
         }
-        else if(creep.memory.role == 'harvester') {
-            roleHarvester.run(creep);
-            harvesterCount += 1;
-        }
-        if(creep.memory.role == 'upgrader') {
-            roleUpgrader.run(creep);
-            upgraderCount += 1;
-        }
-        if(creep.memory.role == 'builder') {
-            roleBuilder.run(creep);
-            builderCount += 1;
-        }
+        // else if(creep.memory.role == 'harvester') {
+        //     roleHarvester.run(creep);
+        //     harvesterCount += 1;
+        // }
+        // if(creep.memory.role == 'upgrader') {
+        //     roleUpgrader.run(creep);
+        //     upgraderCount += 1;
+        // }
+        // if(creep.memory.role == 'builder') {
+        //     roleBuilder.run(creep);
+        //     builderCount += 1;
+        // }
         if(creep.memory.role == 'generic') {
             // console.log('generic', creep.name, creep.memory.mode);
             genericCount += 1;
@@ -57,7 +59,7 @@ module.exports.loop = function () {
     
     console.log('harvesters:', harvesterCount, 'upgraders:', upgraderCount, 'builders:', builderCount, 'generic:', genericCount);
     var spawner = Game.spawns['Spawn1'];
-    if(genericCount < 8) {
+    if(genericCount < MINIMUM_WORKERS) {
         util.createScalingCreep(spawner, 'generic');
         console.log('spawning generic worker due to low count');
     }
@@ -73,12 +75,12 @@ module.exports.loop = function () {
     //     spawner.createCreep( [WORK, WORK, CARRY, CARRY, MOVE, MOVE], null, {'role':'builder'});
     //     console.log('spawning builder');
     // }
-    else if(spawner.room.memory.noEnergy == true && spawner.room.memory.targetWorkerCount > 8) {
-        spawner.room.memory.targetWorkerCount -= 0.001;
+    else if(spawner.room.memory.noEnergy == true && spawner.room.memory.targetWorkerCount > MINIMUM_WORKERS) {
+        spawner.room.memory.targetWorkerCount -= 0.002;
         console.log('target workers', spawner.room.memory.targetWorkerCount);
     }
     else if(spawner.room.energyAvailable == Game.spawns['Spawn1'].room.energyCapacityAvailable) {
-        spawner.room.memory.targetWorkerCount += 1/(genericCount*16);
+        spawner.room.memory.targetWorkerCount += 1/(genericCount*64);
         console.log('target workers', spawner.room.memory.targetWorkerCount);
         if(spawner.room.memory.targetWorkerCount > genericCount) {
             util.createScalingCreep(spawner, 'generic');
@@ -89,4 +91,18 @@ module.exports.loop = function () {
     util.creepGC();
     
     console.log('cpu used this tick:', Game.cpu.getUsed());
+    
+    var myRoom = Game.rooms['W1N69'];
+    myRoom.memory.counter = myRoom.memory.counter + 1;
+    console.log('flag processing counter:', myRoom.memory.counter);
+    
+    // if(myRoom.memory.counter == 50) {
+    //     visualizer.cullFlags(myRoom);
+    // }
+    
+    if(myRoom.memory.counter > 100) {
+        myRoom.memory.counter = 0;
+        visualizer.decayFlags(myRoom);
+        console.log('cpu used this tick after decaying flags:', Game.cpu.getUsed());
+    }
 }

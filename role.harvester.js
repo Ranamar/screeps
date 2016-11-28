@@ -26,6 +26,8 @@ var gatherEnergy = function(creep) {
     }
     else if(result == ERR_NOT_ENOUGH_RESOURCES) {
         creep.room.memory.noEnergy = true;
+        //Get close anyway.
+        creep.moveTo(target);
     }
     else if(result == OK) {
         creep.room.memory.noEnergy = false;
