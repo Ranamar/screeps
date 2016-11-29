@@ -10,7 +10,8 @@
  */
 
 var structureNeedsRepairs = function(structure) {
-    return (structure.hits < structure.hitsMax*0.8) && (structure.hits < 5000);
+    var tileFlags = structure.room.lookForAt(LOOK_FLAGS, structure.pos);
+    return (tileFlags.length > 0) && (structure.hits < structure.hitsMax*0.8) && (structure.hits < 5000);
 }
 
 towerFirer = {
@@ -23,9 +24,12 @@ towerFirer = {
             if (target != undefined) {
                 tower.attack(target);
             }
-            var repairTargets = tower.pos.findInRange(FIND_STRUCTURES, 5, { filter: structureNeedsRepairs });
-            if (repairTargets[0] != undefined) {
-                tower.repair(repairTargets[0]);
+            else {
+                var repairTargets = tower.pos.findInRange(FIND_STRUCTURES, 5, { filter: structureNeedsRepairs });
+                if (repairTargets[0] != undefined) {
+                    tower.repair(repairTargets[0]);
+                }
+                //TODO else heal? costs energy, though
             }
         }
     }

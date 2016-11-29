@@ -22,8 +22,13 @@ var createScalingCreep = function(spawn, role) {
 }
 
 var cleanEnergyTracking = function(room, name) {
-    for(var i = 0; i < Memory.rooms[room].energySources.length; i++) {
-        var source = Memory.rooms[room].energySources[i];
+    var energySources = Memory.rooms[room].energySources;
+    if(!energySources) {
+        //TODO: better fix
+        return;
+    }
+    for(var i = 0; i <energySources.length; i++) {
+        var source = energySources[i];
         var j = 0;
         while(j < source.miners.length) {
             if(source.miners[j] == name) {
@@ -39,6 +44,10 @@ var cleanEnergyTracking = function(room, name) {
 
 var cleanUpgradeTracking = function(room, name) {
     var upgraders = Memory.rooms[room].upgraders;
+    if(!upgraders) {
+        //TODO: better fix
+        return;
+    }
     var i = 0;
     while(i < upgraders.length) {
         if(upgraders[i] == name) {

@@ -77,6 +77,7 @@ var updateFlags = function(room) {
                 var name = flag.name;
                 flag.remove();
                 delete Memory.flags[name];
+                delete room.memory.tileLog[spotString];
             }
         }
         else if(stepSum > 0) {
@@ -106,7 +107,7 @@ var cullFlags = function(room) {
 }
 
 module.exports = {
-    logStep: logSep,
+    logStep: logStep,
     decayFlags: updateFlags,
     cullFlags: cullFlags
 };

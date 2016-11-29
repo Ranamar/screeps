@@ -41,13 +41,17 @@ var convertTaskToOrder = function(task) {
             rv = {
                 job: 'repair',
                 target: task.id
-            }
+            };
         }
         else {
-            // console.log('received structure with no task', task, task.hits);
+            //TODO: investigate null tasks
+            console.log('received structure with no task', task);
+            rv = {
+                job: 'unassigned'
+            };
         }
     }
-    // console.log('converted Task', rv, rv.job);
+    console.log('converted Task', rv, rv.job);
     return rv;
 }
 
@@ -133,8 +137,14 @@ var structureNeedsEnergy = function(structure) {
 }
 
 var structureNeedsRepairs = function(structure) {
-    return structure.hits < structure.hitsMax/2
-            && structure.hits < 5000;
+    //TODO investigate this
+    if(!structure) {
+        return false;
+    }
+    var tileFlags = structure.room.lookForAt(LOOK_FLAGS, structure.pos);
+    return (tileFlags.length > 0) && (structure.hits < structure.hitsMax/2) && (structure.hits < 5000);
+    // return structure.hits < structure.hitsMax/2
+    //         && structure.hits < 5000;
 }
 
 var findTasks = function(room) {

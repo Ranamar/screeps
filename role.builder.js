@@ -1,7 +1,8 @@
 var harvester = require('role.harvester');
 
 var structureNeedsRepairs = function(structure) {
-    return (structure.hits < structure.hitsMax/2) && (structure.hits < 5000);
+    var tileFlags = structure.room.lookForAt(LOOK_FLAGS, structure.pos);
+    return (tileFlags.length > 0) && (structure.hits < structure.hitsMax/2) && (structure.hits < 5000);
 }
 
 var doRepair = function(creep) {
