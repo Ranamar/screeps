@@ -29,6 +29,26 @@ var storeEnergy = function(creep) {
     }
 }
 
+var stealEnergy = function(creep) {
+        if(creep.carry.energy == 0) {
+            var target = Game.getObjectById(creep.memory.target);
+            var result = creep.withdraw(target, RESOURCE_ENERGY);
+            if(result == ERR_NOT_IN_RANGE) {
+                creep.moveTo(target);
+            }
+        }
+        else {
+            var storage = Game.getObjectById('583a4d460f65cfe4148093cf');
+            var result = creep.transfer(storage, RESOURCE_ENERGY);
+            if(result == ERR_NOT_IN_RANGE) {
+                creep.moveTo(storage);
+            }
+        }
+    }
+
+
 module.exports = {
-    storeEnergy: storeEnergy
+    storeEnergy: storeEnergy,
+    
+    stealEnergy: stealEnergy
 };

@@ -1,11 +1,13 @@
 var roleHarvester = require('role.harvester');
 var roleUpgrader = require('role.upgrader');
 var roleBuilder = require('role.builder');
+var roleStorage = require('role.store');
 var util = require('util');
 var towerFirer = require('towerFirer');
 var dispatcher = require('dispatcher');
 var worker = require('worker.base');
 var visualizer = require('visualizer');
+var bleeder = require('bleeder');
 
 var MINIMUM_WORKERS = 6;
 
@@ -29,15 +31,15 @@ module.exports.loop = function () {
             var success = Game.spawns['Spawn1'].recycleCreep(creep);
             console.log('reclaiming creep', creep.name, creep.ticksToLive, success);
         }
-        // else if(creep.memory.role == 'harvester') {
+        // if(creep.memory.role == 'harvester') {
         //     roleHarvester.run(creep);
         //     harvesterCount += 1;
         // }
-        // if(creep.memory.role == 'upgrader') {
+        // else if(creep.memory.role == 'upgrader') {
         //     roleUpgrader.run(creep);
         //     upgraderCount += 1;
         // }
-        // if(creep.memory.role == 'builder') {
+        // else if(creep.memory.role == 'builder') {
         //     roleBuilder.run(creep);
         //     builderCount += 1;
         // }
@@ -52,8 +54,14 @@ module.exports.loop = function () {
             else {
                 worker.run(creep);
             }
+            visualizer.logStep(creep);
         }
-        visualizer.logStep(creep);
+        else if(creep.memory.role == 'thief') {
+            roleStorage.stealEnergy(creep);
+        }
+        else if(creep.memory.role == 'bleeder') {
+            bleeder.doBleed(creep);
+        }
     }
     console.log('cpu used this tick (end of unit AI):', Game.cpu.getUsed());
     
@@ -75,7 +83,11 @@ module.exports.loop = function () {
     //     spawner.createCreep( [WORK, WORK, CARRY, CARRY, MOVE, MOVE], null, {'role':'builder'});
     //     console.log('spawning builder');
     // }
-    else if(spawner.room.memory.noEnergy == true && spawner.room.memory.targetWorkerCount > MINIMUM_WORKERS) {
+    else if(!('bleeder2' in Game.creeps)) {
+        var result = spawner.createCreep([TOUGH, TOUGH, MOVE, MOVE, MOVE, RANGED_ATTACK, MOVE, HEAL, MOVE, HEAL, MOVE, HEAL], 'bleeder2', {'role': 'bleeder', 'inPosition': false});
+        console.log('spawning bleeder', result);
+    }
+    if(spawner.room.memory.noEnergy == true && spawner.room.memory.targetWorkerCount > MINIMUM_WORKERS) {
         spawner.room.memory.targetWorkerCount -= 0.002;
         console.log('target workers', spawner.room.memory.targetWorkerCount);
     }
@@ -100,7 +112,7 @@ module.exports.loop = function () {
     //     visualizer.cullFlags(myRoom);
     // }
     
-    if(myRoom.memory.counter > 100) {
+    if(myRoom.memory.counter > 250) {
         myRoom.memory.counter = 0;
         visualizer.decayFlags(myRoom);
         console.log('cpu used this tick after decaying flags:', Game.cpu.getUsed());

@@ -74,10 +74,12 @@ var updateFlags = function(room) {
                 flag.setColor(flagColors[0], flagColors[1]);
             }
             else {
+                console.log('deleting log for', spot);
                 var name = flag.name;
                 flag.remove();
                 delete Memory.flags[name];
                 delete room.memory.tileLog[spotString];
+                continue;
             }
         }
         else if(stepSum > 0) {
@@ -86,8 +88,8 @@ var updateFlags = function(room) {
         
         //update array for next round
         steplog.unshift(0);
-        while(steplog.length > 10) {
-            steplog.pop();
+        while(steplog.length > 4) {
+            room.memory.tileLog[spotString] = steplog.slice(4);
         }
     }
 }

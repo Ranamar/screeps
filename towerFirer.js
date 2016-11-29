@@ -11,7 +11,7 @@
 
 var structureNeedsRepairs = function(structure) {
     var tileFlags = structure.room.lookForAt(LOOK_FLAGS, structure.pos);
-    return (tileFlags.length > 0) && (structure.hits < structure.hitsMax*0.8) && (structure.hits < 5000);
+    return (tileFlags.length > 0) && (structure.hits < structure.hitsMax - 1000) && (structure.hits < 25000);
 }
 
 towerFirer = {
@@ -25,7 +25,7 @@ towerFirer = {
                 tower.attack(target);
             }
             else {
-                var repairTargets = tower.pos.findInRange(FIND_STRUCTURES, 5, { filter: structureNeedsRepairs });
+                var repairTargets = tower.pos.findInRange(FIND_STRUCTURES, 10, { filter: structureNeedsRepairs });
                 if (repairTargets[0] != undefined) {
                     tower.repair(repairTargets[0]);
                 }

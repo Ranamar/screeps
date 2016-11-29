@@ -5,15 +5,18 @@ var selectSource = function(creep) {
     if(creep.memory.targetIndex == undefined) {
         var leastIndex = 0;
         var leastCount = Number.MAX_VALUE;
+        var source = null;
         for(var i = 0; i < sources.length; i++) {
-            if(sources[i].miners.length <= leastCount) {
+            //TODO: actually return it when we get it here instead of re-getting at the end
+            source = Game.getObjectById(sources[i].id);
+            if(sources[i].miners.length <= leastCount && source.energy > 0) {
                 leastIndex = i;
                 leastCount = sources[i].miners.length;
             }
         }
         creep.memory.targetIndex = leastIndex;
         sources[leastIndex].miners.push(creep.name);
-        console.log('Assigning least used location', creep.memory.targetIndex, sources[creep.memory.targetIndex].miners.length);
+        // console.log('Assigning least used location', creep.memory.targetIndex, sources[creep.memory.targetIndex].miners.length);
     }
     return Game.getObjectById(sources[creep.memory.targetIndex].id);
 }
@@ -26,7 +29,10 @@ var gatherEnergy = function(creep) {
     }
     else if(result == ERR_NOT_ENOUGH_RESOURCES) {
         creep.room.memory.noEnergy = true;
-        //Get close anyway.
+        //reselect source
+        unregisterGathering(creep);
+        target = selectSource(creep);
+        //Get to wherever we happen to have picked.
         creep.moveTo(target);
     }
     else if(result == OK) {
@@ -52,7 +58,7 @@ var gatherDroppedEnergy = function(creep) {
         return true;
     }
     else {
-        // console.log('>>', creep.name, 'pickup target disappeared');
+        console.log('>>', creep.name, 'pickup target disappeared');
         //energy disappeared!
         return false;
     }
