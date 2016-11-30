@@ -1,4 +1,5 @@
 var lodash = require('lodash');
+var analytics = require('analytics');
 
 /*
  * Module code goes here. Use 'module.exports' to export things:
@@ -58,22 +59,22 @@ var convertTaskToOrder = function(task) {
 var assignWorkerJob = function(creep, tasks) {
     var task = null;
     //energy pickup - decays 50% in 600 turns
-    //This code needs work because it does not handle stuff on the far side of walls well.
-    // if(tasks.droppedEnergy.length > 0) {
-    //     // console.log('>>', creep.name, 'checking dropped energy');
-    //     for(var i = 0; i < tasks.droppedEnergy.length; i++) {
-    //         var energyTarget = tasks.droppedEnergy[i];
-    //         // console.log('>>', energyTarget, energyTarget.amount, energyTarget.pos);
-    //         if(energyTarget.amount > 40 && creep.carryCapacity - creep.carry.energy >= 50) {
-    //             tasks.droppedEnergy = tasks.droppedEnergy.slice(i, 1);
-    //             // console.log('>>', creep.name, 'assigned', energyTarget);
-    //             return {
-    //                 job: 'pickup',
-    //                 target: energyTarget.id
-    //             };
-    //         }
-    //     }
-    // }
+    // This code needs work because it does not handle stuff on the far side of walls well.
+    if(tasks.droppedEnergy.length > 0) {
+        // console.log('>>', creep.name, 'checking dropped energy');
+        for(var i = 0; i < tasks.droppedEnergy.length; i++) {
+            var energyTarget = tasks.droppedEnergy[i];
+            // console.log('>>', energyTarget, energyTarget.amount, energyTarget.pos);
+            if(energyTarget.amount > 40 && creep.carryCapacity - creep.carry.energy >= 50) {
+                tasks.droppedEnergy = tasks.droppedEnergy.slice(i, 1);
+                // console.log('>>', creep.name, 'assigned', energyTarget);
+                return {
+                    job: 'pickup',
+                    target: energyTarget.id
+                };
+            }
+        }
+    }
     //If we're out of energy, get energy
     if(creep.carry.energy < 20) {
         task = 'harvest';
@@ -83,7 +84,7 @@ var assignWorkerJob = function(creep, tasks) {
         task = 'upgrade';
     }
     //Keep a reserve of energy
-    else if(tasks.needEnergy.length > 0 && (creep.room.energyCapacityAvailable*0.9) > creep.room.energyAvailable) {
+    else if(tasks.needEnergy.length > 0 && creep.room.energyCapacityAvailable*0.8 > creep.room.energyAvailable) {
         task = creep.pos.findClosestByPath(tasks.needEnergy);
         //Fill spawn last? it might reclaim something - disabled
         // if(task.structureType == STRUCTURE_SPAWN && tasks.needEnergy.length > 0) {
@@ -150,15 +151,15 @@ var structureNeedsEnergy = function(structure) {
 }
 
 var structureNeedsRepairs = function(structure) {
-    //TODO investigate this
     if(!structure) {
         console.log('bad repair target', structure);
         return false;
     }
-    var tileFlags = structure.room.lookForAt(LOOK_FLAGS, structure.pos);
-    return (tileFlags.length > 0) && (structure.hits < structure.hitsMax/2) && (structure.hits < 25000);
-    // return structure.hits < structure.hitsMax/2
-    //         && structure.hits < 25000;
+    var dynamicScore = true;
+    if(structure.structureType == STRUCTURE_ROAD) {
+        dynamicScore = analytics.getWalkScore(structure.pos) > 0;
+    }
+    return dynamicScore && (structure.hits < structure.hitsMax/2) && (structure.hits < 25000);
 }
 
 var findTasks = function(room) {

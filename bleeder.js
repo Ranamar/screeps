@@ -99,7 +99,19 @@ module.exports = {
             }
         }
     },
-    
+    scout: function(creep) {
+        if(!creep.memory.inPosition) {
+            var targetPos = Game.rooms['W1N69'].getPositionAt(1, 27);
+            console.log(creep.name, 'bleeder getting in position', creep.pos, targetPos, creep.memory.inPosition);
+            creep.moveTo(targetPos);
+            if(creep.pos.x == targetPos.x && creep.pos.y == targetPos.y) {
+                creep.memory.inPosition = true;
+            }
+        }
+        else {
+            creep.move(LEFT);
+        }
+    },
     dismantle: function(creep) {
         
     }

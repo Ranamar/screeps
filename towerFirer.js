@@ -9,11 +9,6 @@
  * shamelessly stolen from reify and then modified
  */
 
-var structureNeedsRepairs = function(structure) {
-    var tileFlags = structure.room.lookForAt(LOOK_FLAGS, structure.pos);
-    return (tileFlags.length > 0) && (structure.hits < structure.hitsMax - 1000) && (structure.hits < 25000);
-}
-
 towerFirer = {
     fire: function(roomName) {
         var towers = Game.rooms[roomName].find(FIND_STRUCTURES, {
@@ -25,11 +20,11 @@ towerFirer = {
                 tower.attack(target);
             }
             else {
-                var repairTargets = tower.pos.findInRange(FIND_STRUCTURES, 10, { filter: structureNeedsRepairs });
+                var repairTargets = tower.pos.findInRange(FIND_STRUCTURES, 10, { filter: Structure.prototype.structureNeedsRepairs });
                 if (repairTargets[0] != undefined) {
                     tower.repair(repairTargets[0]);
                 }
-                //TODO else heal? costs energy, though
+                //TODO else heal? costs energy, though I suppose spawning a healer does too.
             }
         }
     }

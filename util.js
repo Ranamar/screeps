@@ -7,7 +7,7 @@
  * mod.thing == 'a thing'; // true
  */
 
-var createScalingCreep = function(spawn, role) {
+module.exports.createScalingCreep = function(spawn, role) {
     var energy = spawn.room.energyAvailable;
     var block = [WORK, CARRY, MOVE];
     var blockCost = 200;
@@ -60,20 +60,34 @@ var cleanUpgradeTracking = function(room, name) {
     }
 }
 
-module.exports = {
-    creepGC: function() {
-        for(var name in Memory.creeps) {
-            if(!Game.creeps[name]) {
-                //Clean up any tracking lists it was on
-                for(var room in Memory.rooms) {
-                    cleanEnergyTracking(room, name);
-                    cleanUpgradeTracking(room, name);
-                }
-                delete Memory.creeps[name];
-                console.log('Clearing non-existing creep memory:', name);
+module.exports.creepGC = function() {
+    for(var name in Memory.creeps) {
+        if(!Game.creeps[name]) {
+            //Clean up any tracking lists it was on
+            for(var room in Memory.rooms) {
+                cleanEnergyTracking(room, name);
+                cleanUpgradeTracking(room, name);
             }
+            delete Memory.creeps[name];
+            console.log('Clearing non-existing creep memory:', name);
         }
-    },
+    }
+}
+
+// module.exports = {
+//     creepGC: function() {
+//         for(var name in Memory.creeps) {
+//             if(!Game.creeps[name]) {
+//                 //Clean up any tracking lists it was on
+//                 for(var room in Memory.rooms) {
+//                     cleanEnergyTracking(room, name);
+//                     cleanUpgradeTracking(room, name);
+//                 }
+//                 delete Memory.creeps[name];
+//                 console.log('Clearing non-existing creep memory:', name);
+//             }
+//         }
+//     },
     
-    createScalingCreep: createScalingCreep
-};
+//     createScalingCreep: createScalingCreep
+// };

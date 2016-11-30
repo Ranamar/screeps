@@ -6,17 +6,19 @@ var util = require('util');
 var towerFirer = require('towerFirer');
 var dispatcher = require('dispatcher');
 var worker = require('worker.base');
-var visualizer = require('visualizer');
+var structureBase = require('structures.base');
 var bleeder = require('bleeder');
+var analytics = require('analytics');
 
-var MINIMUM_WORKERS = 6;
+var MINIMUM_WORKERS = 5.5;
 
 module.exports.loop = function () {
     console.log('--------');
+    console.log('CPU used at start of tick', Game.cpu.getUsed());
     towerFirer.fire('W1N69');
 
     var tasks = dispatcher.findTasks(Game.spawns['Spawn1'].room);
-    console.log('cpu used this tick (after dispatcher):', Game.cpu.getUsed());
+    console.log('cpu used this tick after dispatcher and tower firing:', Game.cpu.getUsed());
 
     //count maintenance roles
     var harvesterCount = 0;
@@ -54,13 +56,13 @@ module.exports.loop = function () {
             else {
                 worker.run(creep);
             }
-            visualizer.logStep(creep);
+            analytics.logStep(creep);
         }
         else if(creep.memory.role == 'thief') {
             roleStorage.stealEnergy(creep);
         }
-        else if(creep.memory.role == 'bleeder') {
-            bleeder.doBleed(creep);
+        else if(creep.memory.role == 'scout') {
+            bleeder.scout(creep);
         }
     }
     console.log('cpu used this tick (end of unit AI):', Game.cpu.getUsed());
@@ -83,10 +85,10 @@ module.exports.loop = function () {
     //     spawner.createCreep( [WORK, WORK, CARRY, CARRY, MOVE, MOVE], null, {'role':'builder'});
     //     console.log('spawning builder');
     // }
-    else if(!('bleeder2' in Game.creeps)) {
-        var result = spawner.createCreep([TOUGH, TOUGH, MOVE, MOVE, MOVE, RANGED_ATTACK, MOVE, HEAL, MOVE, HEAL, MOVE, HEAL], 'bleeder2', {'role': 'bleeder', 'inPosition': false});
-        console.log('spawning bleeder', result);
-    }
+    // else if(!('scout' in Game.creeps)) {
+    //     var result = spawner.createCreep([TOUGH, MOVE], 'scout', {'role': 'scout', 'inPosition': false});
+    //     console.log('spawning scout', result);
+    // }
     if(spawner.room.memory.noEnergy == true && spawner.room.memory.targetWorkerCount > MINIMUM_WORKERS) {
         spawner.room.memory.targetWorkerCount -= 0.002;
         console.log('target workers', spawner.room.memory.targetWorkerCount);
@@ -106,15 +108,11 @@ module.exports.loop = function () {
     
     var myRoom = Game.rooms['W1N69'];
     myRoom.memory.counter = myRoom.memory.counter + 1;
-    console.log('flag processing counter:', myRoom.memory.counter);
+    console.log('log processing counter:', myRoom.memory.counter);
     
-    // if(myRoom.memory.counter == 50) {
-    //     visualizer.cullFlags(myRoom);
-    // }
-    
-    if(myRoom.memory.counter > 250) {
+    if(myRoom.memory.counter >= 250) {
         myRoom.memory.counter = 0;
-        visualizer.decayFlags(myRoom);
-        console.log('cpu used this tick after decaying flags:', Game.cpu.getUsed());
+        analytics.processLogs(myRoom);
+        console.log('cpu used this tick after updating step logs:', Game.cpu.getUsed());
     }
 }

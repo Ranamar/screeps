@@ -85,11 +85,22 @@ var updateFlags = function(room) {
         else if(stepSum > 0) {
             room.createFlag(spot, null, flagColors[0], flagColors[1]);
         }
+        else {
+            //In case we missed it somehow
+            delete room.memory.tileLog[spotString];
+            continue;
+        }
         
         //update array for next round
         steplog.unshift(0);
-        while(steplog.length > 4) {
-            room.memory.tileLog[spotString] = steplog.slice(4);
+        if(steplog.length > 4) {
+            steplog = steplog.slice(4);
+            room.memory.tileLog[spotString] = steplog;
+            // var stepSum = lodash.sum(steplog);
+            // if(stepSum == 0) {
+            //     console.log('deleting', spotString);
+            //     delete room.memory.tileLog[spotString];
+            // }
         }
     }
 }
@@ -101,15 +112,40 @@ var cullFlags = function(room) {
     for(var i = 0; i < flags.length; i++) {
         var flag = flags[i];
         var stringKey = JSON.stringify(flag.pos);
+        if(flag.pos.x > 33 && flag.pos.y > 25) {
+            delete tileLog[stringKey];
+        }
         if(!(stringKey in tileLog)) {
+            console.log('deleting flag', flag.pos);
             flag.remove();
             delete Memory.flags[flag.name];
         }
     }
 }
 
+var cleanLogs = function(room) {
+    for(spotString in room.memory.tileLog) {
+        var steplog = room.memory.tileLog[spotString];
+        if(steplog.length > 4) {
+            room.memory.tileLog[spotString] = steplog.slice(4);
+        }
+    }
+}
+
+var deleteAllFlags = function(room) {
+    console.log('deleting flags in', room.name);
+    var flags = room.find(FIND_FLAGS);
+    for(var i = 0; i < flags.length; i++) {
+        var flag = flags[i];
+        flag.remove();
+        delete Memory.flags[flag.name]
+    }
+}
+
 module.exports = {
     logStep: logStep,
     decayFlags: updateFlags,
-    cullFlags: cullFlags
+    cullFlags: cullFlags,
+    cleanLogs: cleanLogs,
+    deleteAllFlags: deleteAllFlags
 };
