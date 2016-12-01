@@ -13,6 +13,10 @@ var analytics = require('analytics');
 var convertTaskToOrder = function(task) {
     var rv = null;
     // console.log('task', task);
+    if(!task) {
+        console.log('>> Received bad task', task);
+        return null;
+    }
     if(task === 'harvest') {
         rv = { job: 'harvest' };
     }
@@ -38,7 +42,8 @@ var convertTaskToOrder = function(task) {
                 target: task.id
             };
         }
-        else if(structureNeedsRepairs(task)) {
+        // else if(structureNeedsRepairs(task)) {
+        else if((task instanceof Structure) && task.needsRepairs()) {
             rv = {
                 job: 'repair',
                 target: task.id
@@ -46,13 +51,19 @@ var convertTaskToOrder = function(task) {
         }
         else {
             //TODO: investigate null tasks
-            console.log('received structure with no task', task);
+            console.log('received structure with no task', task, task instanceof Structure);
+            if(task instanceof Structure) {
+                console.log('needs repairs?', task, task.hits, task.hitsMax, task.needsRepairs());
+            }
+            else {
+                console.log('not a structure', task);
+            }
             rv = {
                 job: 'unassigned'
             };
         }
     }
-    console.log('converted Task', rv, rv.job);
+    // console.log('converted Task', rv, rv.job);
     return rv;
 }
 
@@ -61,19 +72,26 @@ var assignWorkerJob = function(creep, tasks) {
     //energy pickup - decays 50% in 600 turns
     // This code needs work because it does not handle stuff on the far side of walls well.
     if(tasks.droppedEnergy.length > 0) {
-        // console.log('>>', creep.name, 'checking dropped energy');
-        for(var i = 0; i < tasks.droppedEnergy.length; i++) {
-            var energyTarget = tasks.droppedEnergy[i];
-            // console.log('>>', energyTarget, energyTarget.amount, energyTarget.pos);
-            if(energyTarget.amount > 40 && creep.carryCapacity - creep.carry.energy >= 50) {
-                tasks.droppedEnergy = tasks.droppedEnergy.slice(i, 1);
-                // console.log('>>', creep.name, 'assigned', energyTarget);
-                return {
-                    job: 'pickup',
-                    target: energyTarget.id
-                };
+        var energyTarget = creep.pos.findClosestByPath(tasks.droppedEnergy);
+        if(energyTarget.amount > 40 && creep.carryCapacity - creep.carry.energy >= 50) {
+            return {
+                job: 'pickup',
+                target: energyTarget.id
             }
         }
+    //     // console.log('>>', creep.name, 'checking dropped energy');
+    //     for(var i = 0; i < tasks.droppedEnergy.length; i++) {
+    //         var energyTarget = tasks.droppedEnergy[i];
+    //         // console.log('>>', energyTarget, energyTarget.amount, energyTarget.pos);
+    //         if(energyTarget.amount > 40 && creep.carryCapacity - creep.carry.energy >= 50) {
+    //             tasks.droppedEnergy = tasks.droppedEnergy.slice(i, 1);
+    //             // console.log('>>', creep.name, 'assigned', energyTarget);
+    //             return {
+    //                 job: 'pickup',
+    //                 target: energyTarget.id
+    //             };
+    //         }
+    //     }
     }
     //If we're out of energy, get energy
     if(creep.carry.energy < 20) {
@@ -85,7 +103,8 @@ var assignWorkerJob = function(creep, tasks) {
     }
     //Keep a reserve of energy
     else if(tasks.needEnergy.length > 0 && creep.room.energyCapacityAvailable*0.8 > creep.room.energyAvailable) {
-        task = creep.pos.findClosestByPath(tasks.needEnergy);
+        //findClosestByPath randomly uses a ton of cpu if the stars align
+        task = creep.pos.findClosestByRange(tasks.needEnergy);
         //Fill spawn last? it might reclaim something - disabled
         // if(task.structureType == STRUCTURE_SPAWN && tasks.needEnergy.length > 0) {
         //     tasks.needEnergy.push(task);
@@ -94,12 +113,14 @@ var assignWorkerJob = function(creep, tasks) {
     }
     //Build new buildings
     else if(tasks.needBuilding.length > 0) {
-        task = creep.pos.findClosestByPath(tasks.needBuilding);
+        //findClosestByPath randomly uses a ton of cpu if the stars align
+        task = creep.pos.findClosestByRange(tasks.needBuilding);
     }
     //Maintain our buildings
     else if(tasks.needRepairs.length > 0) {
-        task = creep.pos.findClosestByPath(tasks.needRepairs);
-        console.log('assigned', task);
+        //findClosestByPath randomly uses a ton of cpu if the stars align
+        task = creep.pos.findClosestByRange(tasks.needRepairs);
+        console.log(creep.name, 'assigned repair', task);
     }
     //We have extra energy to use - aggressively upgrade
     else {
@@ -134,7 +155,7 @@ var structureNeedsEnergyExpanded = function(structure) {
         return false;
     }
     return (structure.structureType == STRUCTURE_EXTENSION ||
-            structure.structureType == STRUCTURE_SPAWN ||     //disable so it can possibly use the energy from reclaiming creeps that go by; we generally don't miss it
+            structure.structureType == STRUCTURE_SPAWN ||
             structure.structureType == STRUCTURE_TOWER)
             && structure.energy < structure.energyCapacity;
 }
@@ -165,13 +186,9 @@ var structureNeedsRepairs = function(structure) {
 var findTasks = function(room) {
     var construction = room.find(FIND_CONSTRUCTION_SITES);
     
-    var buildings = room.find(FIND_MY_STRUCTURES);
-    var needEnergy = lodash.filter(buildings, structureNeedsEnergy);
+    var needEnergy = room.find(FIND_MY_STRUCTURES, {filter: structureNeedsEnergy});
 
-    var needRepairs = lodash.filter(buildings, structureNeedsRepairs);
-    var neutStructs = room.find(FIND_STRUCTURES, {filter: { structureType: STRUCTURE_ROAD }});
-    var neutNeedRepairs = lodash.filter(neutStructs, structureNeedsRepairs);
-    Array.prototype.push.apply(needRepairs, neutNeedRepairs);
+    var needRepairs = room.find(FIND_STRUCTURES, {filter: (structure) => structure.needsRepairs()});
 
     var droppedEnergy = room.find(FIND_DROPPED_RESOURCES);
 

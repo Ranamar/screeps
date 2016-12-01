@@ -3,38 +3,38 @@ var harvester = require('role.harvester');
 var store = require('role.store');
 var upgrader = require('role.upgrader');
 
-var doModeEntry = function(creep) {
-    switch(creep.memory.mode) {
+Creep.prototype.enterMode = function() {
+    switch(this.memory.mode) {
         case 'harvest':
-            return harvester.gatherEnergy(creep)
+            return harvester.gatherEnergy(this)
             break;
         case 'build':
-            return builder.build(creep);
+            return builder.build(this);
             break;
         case 'store':
-            return store.storeEnergy(creep);
+            return store.storeEnergy(this);
             break;
         case 'upgrade':
-            return upgrader.upgrade(creep);
+            return upgrader.upgrade(this);
             break;
         case 'repair':
-            return builder.repair(creep);
+            return builder.repair(this);
             break;
         case 'pickup':
-            return harvester.pickupEnergy(creep);
+            return harvester.pickupEnergy(this);
             break;
         default:
             // console.log(creep.name, 'does nothing with', creep.memory.mode);
             return false;
     }
 };
-var doModeExit = function(creep) {
-    switch(creep.memory.mode) {
+Creep.prototype.exitMode = function() {
+    switch(this.memory.mode) {
         case 'harvest':
-            harvester.unregisterGathering(creep);
+            harvester.unregisterGathering(this);
             break;
         case 'upgrade':
-            upgrader.exitUpgrade(creep);
+            upgrader.exitUpgrade(this);
             break;
         default:
             // console.log(creep.name, 'does nothing exiting', creep.memory.mode);
@@ -43,41 +43,41 @@ var doModeExit = function(creep) {
 
 };
 
-var setMode = function(creep, newMode) {
-    if(newMode == creep.memory.mode) {
+Creep.prototype.setMode = function(newMode) {
+    if(newMode == this.memory.mode) {
         // console.log(creep.name, 'setting mode to current mode', newMode);
         return;
     }
     // console.log('set', creep.name, 'mode', creep.memory.mode, 'to', newMode);
-    var currentMode = creep.memory.mode;
-    doModeExit(creep);
-    creep.say(newMode);
+    var currentMode = this.memory.mode;
+    this.exitMode();
+    this.say(newMode);
     // console.log('generic', creep.name, newMode);
-    creep.memory.mode = newMode;
-    doModeEntry(creep);
+    this.memory.mode = newMode;
+    this.enterMode();
 };
 
-var doJob = function(creep) {
+Creep.prototype.work = function(creep) {
     //currently, our mode entries are our general execution loops
-    var result = doModeEntry(creep);
+    var result = this.enterMode();
     if(!result) {
         // console.log(creep.name, 'mode', creep.memory.mode, 'failed to do anything', result);
-        setMode(creep, 'unassigned');
+        this.setMode('unassigned');
     }
 
-    if(creep.memory.mode != 'harvest' && creep.carry.energy == 0 ||
-        creep.memory.mode == 'harvest' && creep.carry.energy == creep.carryCapacity) {
-        setMode(creep, 'unassigned');
+    if(this.memory.mode != 'harvest' && this.carry.energy < 20 ||
+        this.memory.mode == 'harvest' && this.carry.energy == this.carryCapacity) {
+        this.setMode('unassigned');
     }
 }
 
-var assignJob = function(creep, job) {
-    setMode(creep, job.job);
-    creep.memory.target = job.target;
+Creep.prototype.assignJob = function(job) {
+    this.setMode(job.job);
+    this.memory.target = job.target;
 }
 
-module.exports = {
-    enterMode: setMode,
-    assignJob: assignJob,
-    run: doJob
-};
+// module.exports = {
+//     enterMode: setMode,
+//     assignJob: assignJob,
+//     run: doJob
+// };

@@ -14,6 +14,27 @@ var doRepair = function(creep) {
     return false;
 }
 
+var doRepair2 = function(creep) {
+    // if(!creep.memory.target) {
+    //     return false;
+    // }
+    var repTarget = Game.getObjectById(creep.memory.target);
+    console.log(creep.name, 'repairing', creep.memory.target, repTarget);
+    if(!repTarget || !(repTarget.needsRepairs())) {
+        return false;
+    }
+    var attempt = creep.repair(repTarget);
+    if(attempt == ERR_NOT_IN_RANGE) {
+        creep.moveTo(repTarget);
+        return true;
+    }
+    else if(attempt == OK) {
+        return true;
+    }
+    
+    return false;
+}
+
 var doBuild = function(creep) {
     var targets = creep.room.find(FIND_CONSTRUCTION_SITES);
     if(targets.length > 0) {
@@ -56,7 +77,7 @@ var roleBuilder = {
 	
 	build: doBuild,
 	
-	repair: doRepair
+	repair: doRepair2
 };
 
 module.exports = roleBuilder;

@@ -20,11 +20,16 @@ towerFirer = {
                 tower.attack(target);
             }
             else {
-                var repairTargets = tower.pos.findInRange(FIND_STRUCTURES, 10, { filter: Structure.prototype.structureNeedsRepairs });
+                //TODO this is the most expensive thing that we do, it looks like
+                // var repairTargets = tower.pos.findInRange(FIND_STRUCTURES, 10, { filter: (structure) => structure.needsRepairsExt(0.6, 5000) });
+                var repairTargets = tower.pos.findInRange(FIND_STRUCTURES, 10, { filter: (structure) => structure.needsRepairs() });
                 if (repairTargets[0] != undefined) {
                     tower.repair(repairTargets[0]);
                 }
-                //TODO else heal? costs energy, though I suppose spawning a healer does too.
+                // var repairTarget = tower.pos.findClosestByRange(FIND_STRUCTURES, { filter: Structure.prototype.structureNeedsRepairs });
+                // tower.repair(repairTarget);
+                
+                //XXX else heal? costs energy, though I suppose spawning a healer does too.
             }
         }
     }

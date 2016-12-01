@@ -7,12 +7,18 @@ var towerFirer = require('towerFirer');
 var dispatcher = require('dispatcher');
 var worker = require('worker.base');
 var structureBase = require('structures.base');
-var bleeder = require('bleeder');
+// var bleeder = require('bleeder');
 var analytics = require('analytics');
 
 var MINIMUM_WORKERS = 5.5;
 
+var profiler = require('screeps-profiler');
+profiler.enable();
+
 module.exports.loop = function () {
+    
+profiler.wrap(function() {
+    
     console.log('--------');
     console.log('CPU used at start of tick', Game.cpu.getUsed());
     towerFirer.fire('W1N69');
@@ -29,10 +35,10 @@ module.exports.loop = function () {
         var creep = Game.creeps[name];
         // console.log(creep.name, creep.ticksToLive);
         
-        if(creep.ticksToLive < 100) {
-            var success = Game.spawns['Spawn1'].recycleCreep(creep);
-            console.log('reclaiming creep', creep.name, creep.ticksToLive, success);
-        }
+        // if(creep.ticksToLive < 100) {
+        //     var success = Game.spawns['Spawn1'].recycleCreep(creep);
+        //     console.log('reclaiming creep', creep.name, creep.ticksToLive, success);
+        // }
         // if(creep.memory.role == 'harvester') {
         //     roleHarvester.run(creep);
         //     harvesterCount += 1;
@@ -51,19 +57,20 @@ module.exports.loop = function () {
             if(creep.memory.mode == 'unassigned') {
                 var job = dispatcher.assignJob(creep, tasks);
                 // console.log('generic', creep.name, job.job, job.target);
-                worker.assignJob(creep, job);
+                creep.assignJob(job);
             }
             else {
-                worker.run(creep);
+                creep.work();
             }
             analytics.logStep(creep);
         }
-        else if(creep.memory.role == 'thief') {
-            roleStorage.stealEnergy(creep);
-        }
-        else if(creep.memory.role == 'scout') {
-            bleeder.scout(creep);
-        }
+        // else if(creep.memory.role == 'thief') {
+        //     roleStorage.stealEnergy(creep);
+        // }
+        // else if(creep.memory.role == 'scout') {
+        //     bleeder.scout(creep);
+        // }
+        // console.log('cpu used after creep', name, Game.cpu.getUsed());
     }
     console.log('cpu used this tick (end of unit AI):', Game.cpu.getUsed());
     
@@ -115,4 +122,7 @@ module.exports.loop = function () {
         analytics.processLogs(myRoom);
         console.log('cpu used this tick after updating step logs:', Game.cpu.getUsed());
     }
+    
+});     //profiler.wrap
+    
 }

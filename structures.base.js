@@ -9,10 +9,18 @@
 
 var analytics = require('analytics');
 
-Structure.prototype.needsRepairs = function(structure, percentDamaged = 0.5, maxHits = 25000) {
+Structure.prototype.needsRepairsExt = function(percentDamaged, maxHits) {
     var dynamicScore = true;
-    if(structure.structureType == STRUCTURE_ROAD) {
-        dynamicScore = analytics.getWalkScore(structure.pos) > 0;
+    if(this.structureType == STRUCTURE_ROAD) {
+        dynamicScore = analytics.getWalkScore(this.pos) > 0;
     }
-    return (structure.hits < structure.hitsMax*percentDamaged) && (structure.hits < maxHits) && dynamicScore;
+    return (this.hits < this.hitsMax*percentDamaged) && (this.hits < maxHits) && dynamicScore;
+};
+
+Structure.prototype.needsRepairs = function() {
+    var dynamicScore = true;
+    if(this.structureType == STRUCTURE_ROAD) {
+        dynamicScore = analytics.getWalkScore(this.pos) > 0;
+    }
+    return (this.hits < this.hitsMax*0.5) && (this.hits < 25000) && dynamicScore;
 };
