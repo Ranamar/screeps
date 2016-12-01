@@ -39,7 +39,7 @@ var roadMinScoreLookup = {
     'swamp': (1500*3)/(4*5),
     'plain': (300*3)/(5)
 };
-var dropValueRoad = function(spot, tilescore) {
+var dropValueRoad = function(spot, tileScore) {
     var ticksOnLand;
     var roadCost;
     var room = Game.rooms[spot.roomName];

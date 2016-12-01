@@ -11,9 +11,12 @@
 
 towerFirer = {
     fire: function(roomName) {
-        var towers = Game.rooms[roomName].find(FIND_MY_STRUCTURES, {
-            filter: {'structureType': STRUCTURE_TOWER}
-        });
+        var towers = Game.rooms[roomName].find(FIND_MY_STRUCTURES,
+                            { filter: {'structureType': STRUCTURE_TOWER} });
+        var repairables = null;
+        if(Game.rooms[roomName].memory.tasks) {
+            repairables = Game.rooms[roomName].memory.tasks.needRepairs;
+        }
         for (let tower of towers) {
             var target = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
             if (target != undefined) {
@@ -21,14 +24,16 @@ towerFirer = {
             }
             else {
                 //TODO this is the most expensive thing that we do, it looks like
-                // var repairTargets = tower.pos.findInRange(FIND_STRUCTURES, 10, { filter: (structure) => structure.needsRepairsExt(0.6, 5000) });
-                var repairTargets = tower.pos.findInRange(FIND_STRUCTURES, 10, { filter: (structure) => structure.needsRepairs() });
+                var repairTargets = [];
+                if(!repairables) {
+                    repairTargets = tower.pos.findInRange(FIND_STRUCTURES, 10, { filter: (structure) => structure.needsRepairs() });
+                }
+                else {
+                    repairTargets = tower.pos.findInRange(repairables, 10, { filter: (structure) => structure.needsRepairs() });
+                }
                 if (repairTargets[0] != undefined) {
                     tower.repair(repairTargets[0]);
                 }
-                // var repairTarget = tower.pos.findClosestByRange(FIND_STRUCTURES, { filter: Structure.prototype.structureNeedsRepairs });
-                // tower.repair(repairTarget);
-                
                 //XXX else heal? costs energy, though I suppose spawning a healer does too.
             }
         }

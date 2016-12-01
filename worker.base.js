@@ -14,6 +14,8 @@ Creep.prototype.enterMode = function() {
         case 'store':
             return store.storeEnergy(this);
             break;
+        case 'storeall':
+            return store.storeAll(this);
         case 'upgrade':
             return upgrader.upgrade(this);
             break;

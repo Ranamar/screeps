@@ -29,6 +29,20 @@ var storeEnergy = function(creep) {
     }
 }
 
+var storeAll = function(creep) {
+    var target = Game.getObjectById(creep.memory.target);
+    for(let resource in creep.carry) {
+        if(creep.carry[resource] > 0) {
+            var result = creep.transfer(target, resource);
+            if(result == ERR_NOT_IN_RANGE) {
+                creep.moveTo(target);
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 var stealEnergy = function(creep) {
         if(creep.carry.energy == 0) {
             var target = Game.getObjectById(creep.memory.target);

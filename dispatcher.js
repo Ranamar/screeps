@@ -69,29 +69,25 @@ var convertTaskToOrder = function(task) {
 
 var assignWorkerJob = function(creep, tasks) {
     var task = null;
-    //energy pickup - decays 50% in 600 turns
+    //resource return - confuses everything else
+    for(let resource in creep.carry) {
+        if(resource != RESOURCE_ENERGY && creep.carry[resource] > 0) {
+            return {
+                job: 'storeall',
+                target: Game.rooms['W1N69'].storage.id
+            };
+        }
+    }
+    //resource pickup - decays 50% in 600 turns
     // This code needs work because it does not handle stuff on the far side of walls well.
     if(tasks.droppedEnergy.length > 0) {
         var energyTarget = creep.pos.findClosestByPath(tasks.droppedEnergy);
-        if(energyTarget.amount > 40 && creep.carryCapacity - creep.carry.energy >= 50) {
+        if(energyTarget && energyTarget.amount > 40 && creep.carryCapacity - creep.carry.energy >= 50) {
             return {
                 job: 'pickup',
                 target: energyTarget.id
             }
         }
-    //     // console.log('>>', creep.name, 'checking dropped energy');
-    //     for(var i = 0; i < tasks.droppedEnergy.length; i++) {
-    //         var energyTarget = tasks.droppedEnergy[i];
-    //         // console.log('>>', energyTarget, energyTarget.amount, energyTarget.pos);
-    //         if(energyTarget.amount > 40 && creep.carryCapacity - creep.carry.energy >= 50) {
-    //             tasks.droppedEnergy = tasks.droppedEnergy.slice(i, 1);
-    //             // console.log('>>', creep.name, 'assigned', energyTarget);
-    //             return {
-    //                 job: 'pickup',
-    //                 target: energyTarget.id
-    //             };
-    //         }
-    //     }
     }
     //If we're out of energy, get energy
     if(creep.carry.energy < 20) {
