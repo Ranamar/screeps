@@ -9,6 +9,7 @@ var worker = require('worker.base');
 var structureBase = require('structures.base');
 // var bleeder = require('bleeder');
 var analytics = require('analytics');
+var distanceHarvest = require('role.distanceHarvester');
 
 var MINIMUM_WORKERS = 5.5;
 
@@ -33,6 +34,7 @@ profiler.wrap(function() {
     var upgraderCount = 0;
     var builderCount = 0;
     var genericCount = 0;
+    var distanceHarvesterCount = 0;
     for(var name in Game.creeps) {
         var creep = Game.creeps[name];
         // console.log(creep.name, creep.ticksToLive);
@@ -66,6 +68,11 @@ profiler.wrap(function() {
             }
             analytics.logStep(creep);
         }
+        else if(creep.memory.role == 'distanceHarvester') {
+            distanceHarvesterCount += 1;
+            distanceHarvest.run(creep);
+            analytics.logStep(creep);
+        }
         // else if(creep.memory.role == 'thief') {
         //     roleStorage.stealEnergy(creep);
         // }
@@ -76,7 +83,9 @@ profiler.wrap(function() {
     }
     console.log('cpu used this tick (end of unit AI):', Game.cpu.getUsed());
     
-    console.log('harvesters:', harvesterCount, 'upgraders:', upgraderCount, 'builders:', builderCount, 'generic:', genericCount);
+    console.log(/*'harvesters:', harvesterCount, 'upgraders:', upgraderCount, 'builders:', builderCount,*/
+                'generic:', genericCount, 'remote:', distanceHarvesterCount);
+    
     var spawner = Game.spawns['Spawn1'];
     if(genericCount < MINIMUM_WORKERS) {
         util.createScalingCreep(spawner, 'generic');
@@ -98,6 +107,10 @@ profiler.wrap(function() {
     //     var result = spawner.createCreep([TOUGH, MOVE], 'scout', {'role': 'scout', 'inPosition': false});
     //     console.log('spawning scout', result);
     // }
+    else if(distanceHarvesterCount < 1) {
+        util.createScalingCreep(spawner, 'distanceHarvester');
+        console.log('Spawning remote harvester');
+    }
     if(spawner.room.memory.noEnergy == true && spawner.room.memory.targetWorkerCount > MINIMUM_WORKERS) {
         spawner.room.memory.targetWorkerCount -= 0.002;
         console.log('target workers', spawner.room.memory.targetWorkerCount);

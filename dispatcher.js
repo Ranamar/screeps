@@ -128,9 +128,9 @@ var assignWorkerJob = function(creep, tasks) {
         else if(Game.spawns['Spawn1'].energy < Game.spawns['Spawn1'].energyCapacity) {
             task = Game.spawns['Spawn1'];
         }
-        else if(Math.random() < 0.1) {
-            task = creep.room.storage;
-        }
+        // else if(Math.random() < 0.1) {
+        //     task = creep.room.storage;
+        // }
         else {
             task = 'upgrade';
         }

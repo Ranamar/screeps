@@ -64,5 +64,7 @@ var stealEnergy = function(creep) {
 module.exports = {
     storeEnergy: storeEnergy,
     
+    storeAll: storeAll,
+    
     stealEnergy: stealEnergy
 };
