@@ -11,8 +11,8 @@
 
 towerFirer = {
     fire: function(roomName) {
-        var towers = Game.rooms[roomName].find(FIND_STRUCTURES, {
-            filter: (s) => s.structureType == STRUCTURE_TOWER
+        var towers = Game.rooms[roomName].find(FIND_MY_STRUCTURES, {
+            filter: {'structureType': STRUCTURE_TOWER}
         });
         for (let tower of towers) {
             var target = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);

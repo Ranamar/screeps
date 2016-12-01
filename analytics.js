@@ -32,6 +32,27 @@ module.exports.logStep = function(creep) {
     }
 }
 
+//(roadCost/delay) <= (roadLife/sampleWindow)*(partCost/creepLife)*partsSampled
+//roadLife=50,000; sampleWindow=1,000; creepLife=1,500; partCost assumed to be 50
+//partsSampled >= (roadCost/delay)*(sampleWindow/roadLife)*(creepLife/partCost)
+var roadMinScoreLookup = {
+    'swamp': (1500*3)/(4*5),
+    'plain': (300*3)/(5)
+};
+var dropValueRoad = function(spot, tilescore) {
+    var ticksOnLand;
+    var roadCost;
+    var room = Game.rooms[spot.roomName];
+    var terrain = room.lookForAt(LOOK_TERRAIN, spot);
+    
+    var roadMinimumScore = roadMinScoreLookup[terrain];
+
+    if(tileScore > roadMinimumScore) {
+        //This will fail if we already have something, so we don't need to check that ourselves
+        room.createConstructionSite(spot, STRUCTURE_ROAD);
+    }
+}
+
 module.exports.processLogs = function(room) {
     console.log('processing step logs', room);
     for(spotString in room.memory.tileLog) {
@@ -49,6 +70,11 @@ module.exports.processLogs = function(room) {
             steplog.unshift(0);
             if(steplog.length > 4) {
                 steplog.pop();
+            }
+            //arbitrarily chosen value slightly lower than the lower breakeven value
+            if(stepSum > 150) {
+                dropValueRoad(spot, stepSum);
+                
             }
         }
     }

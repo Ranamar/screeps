@@ -22,9 +22,10 @@ profiler.wrap(function() {
     console.log('--------');
     console.log('CPU used at start of tick', Game.cpu.getUsed());
     towerFirer.fire('W1N69');
+    console.log('cpu used this tick after tower firing:', Game.cpu.getUsed());
 
     var tasks = dispatcher.findTasks(Game.spawns['Spawn1'].room);
-    console.log('cpu used this tick after dispatcher and tower firing:', Game.cpu.getUsed());
+    console.log('cpu used this tick after dispatcher:', Game.cpu.getUsed());
 
     //count maintenance roles
     var harvesterCount = 0;
