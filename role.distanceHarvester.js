@@ -1,5 +1,5 @@
 var _ = require('lodash')
-var upgrader = require('role.upgrader')
+var roleUpgrader = require('role.upgrader');
 
 var roleDistanceHarvester = {
 
@@ -77,7 +77,7 @@ var roleDistanceHarvester = {
             //         creep.moveTo(target);
             //         break;
             // }
-            upgrader.upgradeController(creep);
+            roleUpgrader.upgrade(creep);
         }
     },
 
