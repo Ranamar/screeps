@@ -12,7 +12,7 @@ var analytics = require('analytics');
  
 var convertTaskToOrder = function(task) {
     var rv = null;
-    // console.log('task', task);
+    console.log('>> task', task);
     if(!task) {
         console.log('>> Received bad task', task);
         return null;
@@ -30,13 +30,14 @@ var convertTaskToOrder = function(task) {
         };
     }
     else if(task instanceof Resource) {
+        console.log('>> assignment: pick up resource');
         rv = {
             job: 'pickup',
             target: task.id
         };
     }
     else {
-        if(structureNeedsEnergyExpanded(task) || task != null && task.structureType == STRUCTURE_STORAGE) {
+        if(structureNeedsEnergy(task) || task != null && task.structureType == STRUCTURE_STORAGE) {
             rv = {
                 job: 'store',
                 target: task.id
@@ -67,7 +68,8 @@ var convertTaskToOrder = function(task) {
     return rv;
 }
 
-var assignWorkerJob = function(creep, tasks) {
+var assignWorkerJob = function(creep) {
+    var tasks = creep.room.memory.tasks;
     var task = null;
     //resource return - confuses everything else
     for(let resource in creep.carry) {
@@ -101,11 +103,6 @@ var assignWorkerJob = function(creep, tasks) {
     else if(tasks.needEnergy.length > 0 && creep.room.energyCapacityAvailable*0.8 > creep.room.energyAvailable) {
         //findClosestByPath randomly uses a ton of cpu if the stars align
         task = creep.pos.findClosestByRange(tasks.needEnergy);
-        //Fill spawn last? it might reclaim something - disabled
-        // if(task.structureType == STRUCTURE_SPAWN && tasks.needEnergy.length > 0) {
-        //     tasks.needEnergy.push(task);
-        //     task = tasks.needEnergy.shift();
-        // }
     }
     //Build new buildings
     else if(tasks.needBuilding.length > 0) {
@@ -124,10 +121,6 @@ var assignWorkerJob = function(creep, tasks) {
         if(tasks.needEnergy.length > 0 /*&& Math.random() < 0.3*/) {
             task = tasks.needEnergy.shift();
         }
-        // We skip the spawner up above; save it for last
-        else if(Game.spawns['Spawn1'].energy < Game.spawns['Spawn1'].energyCapacity) {
-            task = Game.spawns['Spawn1'];
-        }
         // else if(Math.random() < 0.1) {
         //     task = creep.room.storage;
         // }
@@ -145,24 +138,13 @@ var assignWorkerJob = function(creep, tasks) {
     return convertTaskToOrder(task);
 }
 
-var structureNeedsEnergyExpanded = function(structure) {
-    if(!structure) {
-        console.log('got bad structure (exp)', structure);
-        return false;
-    }
-    return (structure.structureType == STRUCTURE_EXTENSION ||
-            structure.structureType == STRUCTURE_SPAWN ||
-            structure.structureType == STRUCTURE_TOWER)
-            && structure.energy < structure.energyCapacity;
-}
-
 var structureNeedsEnergy = function(structure) {
     if(!structure) {
         console.log('got bad structure', structure);
         return false;
     }
     return (structure.structureType == STRUCTURE_EXTENSION ||
-//            structure.structureType == STRUCTURE_SPAWN ||     //disable so it can possibly use the energy from reclaiming creeps that go by; we generally don't miss it
+            structure.structureType == STRUCTURE_SPAWN ||
             structure.structureType == STRUCTURE_TOWER)
             && structure.energy < structure.energyCapacity;
 }

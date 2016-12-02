@@ -45,13 +45,13 @@ var gatherDroppedEnergy = function(creep) {
     var target = Game.getObjectById(creep.memory.target);
     if(target) {
         var result = creep.pickup(target);
-        // console.log('>>', creep.name, 'pickup result', result);
+        console.log('>>', creep.name, 'pickup result', result);
         if(result == ERR_NOT_IN_RANGE) {
-            // console.log('>>', creep.name, 'moving to pickup target');
+            console.log('>>', creep.name, 'moving to pickup target', result);
             creep.moveTo(target);
         }
         else if(result == ERR_FULL || result == ERR_INVALID_TARGET) {
-            // console.log('>>', creep.name, 'gives up on pickup');
+            console.log('>>', creep.name, 'gives up on pickup', result);
             //we can't do this; do something else
             return false;
         }

@@ -59,7 +59,7 @@ Creep.prototype.setMode = function(newMode) {
     this.enterMode();
 };
 
-Creep.prototype.work = function(creep) {
+Creep.prototype.work = function() {
     //currently, our mode entries are our general execution loops
     var result = this.enterMode();
     if(!result) {
@@ -78,8 +78,21 @@ Creep.prototype.assignJob = function(job) {
     this.memory.target = job.target;
 }
 
-// module.exports = {
-//     enterMode: setMode,
-//     assignJob: assignJob,
-//     run: doJob
-// };
+Creep.prototype.moveToNewRoom = function() {
+    console.log(this.name, 'moving rooms from', this.pos.roomName, 'to', this.memory.destination);
+    if(this.pos.roomName == this.memory.destination) {
+        this.memory.role = this.memory.destRole;
+        delete this.memory.destRole;
+    }
+    else {
+        var target = Game.rooms[this.memory.destination].controller;
+        this.moveTo(target);
+    }
+}
+
+Creep.prototype.workerMove = function() {
+    //Try operation
+    //move if fail
+    //try operation again
+    //look for targets of opportunity if failed
+}

@@ -10,6 +10,7 @@ var structureBase = require('structures.base');
 // var bleeder = require('bleeder');
 var analytics = require('analytics');
 var distanceHarvest = require('role.distanceHarvester');
+var colonizer = require('role.colonizer');
 
 var MINIMUM_WORKERS = 5.5;
 
@@ -23,18 +24,25 @@ profiler.wrap(function() {
     console.log('--------');
     console.log('CPU used at start of tick', Game.cpu.getUsed());
 
-    var tasks = dispatcher.findTasks(Game.spawns['Spawn1'].room);
+    for(roomName in Game.rooms) {
+        var room = Game.rooms[roomName];
+        // console.log('examining room', room);
+        if(room.controller.owner && room.controller.owner.username == 'Ranamar') {
+            // console.log('is owned by me');
+            dispatcher.findTasks(room);
+        }
+        //prep maintenance role counts by room
+        room.memory.genericCount = 0;
+    }
+    // var tasks = dispatcher.findTasks(Game.spawns['Spawn1'].room);
     console.log('cpu used this tick after dispatcher:', Game.cpu.getUsed());
 
     towerFirer.fire('W1N69');
     console.log('cpu used this tick after tower firing:', Game.cpu.getUsed());
 
     //count maintenance roles
-    var harvesterCount = 0;
-    var upgraderCount = 0;
-    var builderCount = 0;
-    var genericCount = 0;
     var distanceHarvesterCount = 0;
+    var transitCount = 0;
     for(var name in Game.creeps) {
         var creep = Game.creeps[name];
         // console.log(creep.name, creep.ticksToLive);
@@ -57,9 +65,9 @@ profiler.wrap(function() {
         // }
         if(creep.memory.role == 'generic') {
             // console.log('generic', creep.name, creep.memory.mode);
-            genericCount += 1;
+            creep.room.memory.genericCount += 1;
             if(creep.memory.mode == 'unassigned') {
-                var job = dispatcher.assignJob(creep, tasks);
+                var job = dispatcher.assignJob(creep);
                 // console.log('generic', creep.name, job.job, job.target);
                 creep.assignJob(job);
             }
@@ -73,6 +81,13 @@ profiler.wrap(function() {
             distanceHarvest.run(creep);
             analytics.logStep(creep);
         }
+        else if(creep.memory.role == 'colonize') {
+            colonizer.run(creep);
+        }
+        else if(creep.memory.role == 'transit') {
+            transitCount += 1;
+            creep.moveToNewRoom();
+        }
         // else if(creep.memory.role == 'thief') {
         //     roleStorage.stealEnergy(creep);
         // }
@@ -83,32 +98,16 @@ profiler.wrap(function() {
     }
     console.log('cpu used this tick (end of unit AI):', Game.cpu.getUsed());
     
-    console.log(/*'harvesters:', harvesterCount, 'upgraders:', upgraderCount, 'builders:', builderCount,*/
-                'generic:', genericCount, 'remote:', distanceHarvesterCount);
-    
     var spawner = Game.spawns['Spawn1'];
-    if(genericCount < MINIMUM_WORKERS) {
-        util.createScalingCreep(spawner, 'generic');
+    console.log(/*'harvesters:', harvesterCount, 'upgraders:', upgraderCount, 'builders:', builderCount,*/
+                'generic:', spawner.room.memory.genericCount, 'remote:', distanceHarvesterCount, 'in transit:', transitCount);
+    
+    if(spawner.room.memory.genericCount < MINIMUM_WORKERS) {
+        util.createScalingCreep(spawner, {role:'generic'});
         console.log('spawning generic worker due to low count');
     }
-    // else if(harvesterCount < 0) {
-    //     spawner.createCreep( [WORK, WORK, CARRY, CARRY, MOVE, MOVE], null, {'role':'harvester'});
-    //     console.log('spawning harvester');
-    // }
-    // else if(upgraderCount < 0) {
-    //     spawner.createCreep( [WORK, WORK, CARRY, CARRY, MOVE, MOVE], null, {'role':'upgrader'});
-    //     console.log('spawning upgrader');
-    // }
-    // else if(builderCount < 0) {
-    //     spawner.createCreep( [WORK, WORK, CARRY, CARRY, MOVE, MOVE], null, {'role':'builder'});
-    //     console.log('spawning builder');
-    // }
-    // else if(!('scout' in Game.creeps)) {
-    //     var result = spawner.createCreep([TOUGH, MOVE], 'scout', {'role': 'scout', 'inPosition': false});
-    //     console.log('spawning scout', result);
-    // }
-    else if(distanceHarvesterCount < 1) {
-        util.createScalingCreep(spawner, 'distanceHarvester');
+    else if(distanceHarvesterCount < 2) {
+        util.createScalingCreep(spawner, {role:'distanceHarvester', destination:'W2N68'});
         console.log('Spawning remote harvester');
     }
     if(spawner.room.memory.noEnergy == true && spawner.room.memory.targetWorkerCount > MINIMUM_WORKERS) {
@@ -116,11 +115,15 @@ profiler.wrap(function() {
         console.log('target workers', spawner.room.memory.targetWorkerCount);
     }
     else if(spawner.room.energyAvailable == Game.spawns['Spawn1'].room.energyCapacityAvailable) {
-        spawner.room.memory.targetWorkerCount += 1/(genericCount*64);
-        console.log('target workers', spawner.room.memory.targetWorkerCount);
-        if(spawner.room.memory.targetWorkerCount > genericCount) {
-            util.createScalingCreep(spawner, 'generic');
+        // spawner.room.memory.targetWorkerCount += 1/(genericCount*64);
+        // console.log('target workers', spawner.room.memory.targetWorkerCount);
+        if(spawner.room.memory.targetWorkerCount > spawner.room.memory.genericCount) {
+            util.createScalingCreep(spawner, {role:'generic'});
             console.log('spawning generic worker due to high energy');
+        }
+        else {
+            util.createScalingCreep(spawner, {role:'transit', destination: 'W2N68', destRole:'generic'});
+            console.log('spawning worker for export');
         }
     }
     
@@ -134,7 +137,9 @@ profiler.wrap(function() {
     
     if(myRoom.memory.counter >= 250) {
         myRoom.memory.counter = 0;
-        analytics.processLogs(myRoom);
+        for(roomName in Memory.rooms) {
+            analytics.processLogs(Game.rooms[roomName]);
+        }
         console.log('cpu used this tick after updating step logs:', Game.cpu.getUsed());
     }
     

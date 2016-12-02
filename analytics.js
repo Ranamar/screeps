@@ -54,6 +54,8 @@ var dropValueRoad = function(spot, tileScore) {
 }
 
 module.exports.processLogs = function(room) {
+    if(!room || !('tileLog' in room.memory))
+        return;
     console.log('processing step logs', room);
     for(spotString in room.memory.tileLog) {
         //deserialize our position

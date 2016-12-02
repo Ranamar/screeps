@@ -1,6 +1,9 @@
 var harvester = require('role.harvester');
 
 var upgradeController = function(creep) {
+    if(creep.carry.energy == 0) {
+        return false;
+    }
     if(!creep.room.memory.upgraders.includes(creep.name)) {
         creep.room.memory.upgraders.push(creep.name);
     }

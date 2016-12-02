@@ -1,4 +1,5 @@
 var _ = require('lodash')
+var upgrader = require('role.upgrader')
 
 var roleDistanceHarvester = {
 
@@ -33,7 +34,8 @@ var roleDistanceHarvester = {
         if(creep.carry.energy == creep.carryCapacity) {
 
             creep.memory.harvesting = false;
-            roleDistanceHarvester.storeAtHome(creep);
+            roleDistanceHarvester.upgradeAtDestination(creep);
+            // roleDistanceHarvester.storeAtHome(creep);
 
         // go to the target room, then find an energy in it and nom away
         } else if(creep.memory.harvesting) {
@@ -47,7 +49,7 @@ var roleDistanceHarvester = {
             }
         } else {
             // default to going home
-            roleDistanceHarvester.storeAtHome(creep);
+            roleDistanceHarvester.upgradeAtDestination(creep);
         }
     },
 
@@ -63,6 +65,21 @@ var roleDistanceHarvester = {
             }
         }
     },
+    
+    upgradeAtDestination: function(creep) {
+        var destination = creep.memory.destination;
+        if(creep.room.name != destination) {
+            creep.moveTo(Game.rooms[destination].controller);
+        } else {
+            // var target = creep.room.controller;
+            // switch(creep.upgradeController(target)) {
+            //     case ERR_NOT_IN_RANGE:
+            //         creep.moveTo(target);
+            //         break;
+            // }
+            upgrader.upgradeController(creep);
+        }
+    },
 
     layOrRepairRoads: function(creep) {
 
@@ -70,16 +87,18 @@ var roleDistanceHarvester = {
         //lookFor(LOOK_STRUCTURES);
         var construction = creep.pos.findInRange(FIND_CONSTRUCTION_SITES, 3);
         //lookFor(LOOK_CONSTRUCTION_SITES);
-        if(roads.length != 0) {
+        //Build before maintenance; we can move faster with more things if we build first, and it doesn't decay *that* fast.
+        if(construction.length != 0) {
+            var constructionSite = construction[0];
+            // there is construction here, build it
+            creep.build(constructionSite);
+        }
+        else if(roads.length != 0) {
             var road = roads[0];
             // there is a road here, maybe repair it
             if(road.hits / road.hitsMax < .8) {
                 creep.repair(road);
             }
-        } else if(construction.length != 0) {
-            var constructionSite = construction[0];
-            // there is construction here, build it
-            creep.build(constructionSite);
         }
     }
 };

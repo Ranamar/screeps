@@ -7,7 +7,7 @@
  * mod.thing == 'a thing'; // true
  */
 
-module.exports.createScalingCreep = function(spawn, role) {
+module.exports.createScalingCreep = function(spawn, settings) {
     var energy = spawn.room.energyAvailable;
     var block = [WORK, CARRY, MOVE];
     var blockCost = 200;
@@ -17,8 +17,7 @@ module.exports.createScalingCreep = function(spawn, role) {
         largest = largest.concat(block);
         totalCost += blockCost;
     }
-    var result = spawn.createCreep(largest, null, {'role': role});
-    console.log(result);
+    var result = spawn.createCreep(largest, null, settings);
 }
 
 var cleanEnergyTracking = function(room, name) {
