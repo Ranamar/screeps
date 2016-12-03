@@ -1,16 +1,13 @@
-var roleHarvester = require('role.harvester');
-var roleUpgrader = require('role.upgrader');
-var roleBuilder = require('role.builder');
-var roleStorage = require('role.store');
+// var roleStorage = require('role.store');
 var util = require('util');
 var towerFirer = require('towerFirer');
 var dispatcher = require('dispatcher');
 var worker = require('worker.base');
-var structureBase = require('structures.base');
+var maintenance = require('structures.maintenance');
 // var bleeder = require('bleeder');
 var analytics = require('analytics');
 var distanceHarvest = require('role.distanceHarvester');
-var colonizer = require('role.colonizer');
+// var colonizer = require('role.colonizer');
 
 var MINIMUM_WORKERS = 5.5;
 
@@ -35,7 +32,6 @@ profiler.wrap(function() {
         room.memory.genericCount = 0;
         room.memory.distanceHarvesterCount = 0;
     }
-    // var tasks = dispatcher.findTasks(Game.spawns['Spawn1'].room);
     console.log('cpu used this tick after dispatcher:', Game.cpu.getUsed());
 
     towerFirer.fire('W1N69');
@@ -50,18 +46,6 @@ profiler.wrap(function() {
         // if(creep.ticksToLive < 100) {
         //     var success = Game.spawns['Spawn1'].recycleCreep(creep);
         //     console.log('reclaiming creep', creep.name, creep.ticksToLive, success);
-        // }
-        // if(creep.memory.role == 'harvester') {
-        //     roleHarvester.run(creep);
-        //     harvesterCount += 1;
-        // }
-        // else if(creep.memory.role == 'upgrader') {
-        //     roleUpgrader.run(creep);
-        //     upgraderCount += 1;
-        // }
-        // else if(creep.memory.role == 'builder') {
-        //     roleBuilder.run(creep);
-        //     builderCount += 1;
         // }
         if(creep.memory.role == 'generic') {
             // console.log('generic', creep.name, creep.memory.mode);
@@ -81,9 +65,9 @@ profiler.wrap(function() {
             distanceHarvest.run(creep);
             analytics.logStep(creep);
         }
-        else if(creep.memory.role == 'colonize') {
-            colonizer.run(creep);
-        }
+        // else if(creep.memory.role == 'colonize') {
+        //     colonizer.run(creep);
+        // }
         else if(creep.memory.role == 'transit') {
             transitCount += 1;
             creep.moveToNewRoom();

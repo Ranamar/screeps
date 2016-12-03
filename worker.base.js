@@ -1,5 +1,5 @@
 var builder = require('role.builder');
-var harvester = require('role.harvester');
+var harvester = require('worker.harvest');
 var store = require('role.store');
 var upgrader = require('role.upgrader');
 
@@ -74,8 +74,8 @@ Creep.prototype.work = function() {
 }
 
 Creep.prototype.assignJob = function(job) {
-    this.setMode(job.job);
     this.memory.target = job.target;
+    this.setMode(job.job);
 }
 
 Creep.prototype.moveToNewRoom = function() {
