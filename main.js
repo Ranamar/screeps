@@ -33,6 +33,7 @@ profiler.wrap(function() {
         }
         //prep maintenance role counts by room
         room.memory.genericCount = 0;
+        room.memory.distanceHarvesterCount = 0;
     }
     // var tasks = dispatcher.findTasks(Game.spawns['Spawn1'].room);
     console.log('cpu used this tick after dispatcher:', Game.cpu.getUsed());
@@ -41,7 +42,6 @@ profiler.wrap(function() {
     console.log('cpu used this tick after tower firing:', Game.cpu.getUsed());
 
     //count maintenance roles
-    var distanceHarvesterCount = 0;
     var transitCount = 0;
     for(var name in Game.creeps) {
         var creep = Game.creeps[name];
@@ -77,7 +77,7 @@ profiler.wrap(function() {
             analytics.logStep(creep);
         }
         else if(creep.memory.role == 'distanceHarvester') {
-            distanceHarvesterCount += 1;
+            creep.room.memory.distanceHarvesterCount += 1;
             distanceHarvest.run(creep);
             analytics.logStep(creep);
         }
@@ -98,32 +98,34 @@ profiler.wrap(function() {
     }
     console.log('cpu used this tick (end of unit AI):', Game.cpu.getUsed());
     
-    var spawner = Game.spawns['Spawn1'];
-    console.log(/*'harvesters:', harvesterCount, 'upgraders:', upgraderCount, 'builders:', builderCount,*/
-                'generic:', spawner.room.memory.genericCount, 'remote:', distanceHarvesterCount, 'in transit:', transitCount);
+    for(var spawnName in Game.spawns) {
+        var spawner = Game.spawns[spawnName];
+        console.log(spawner.room,
+                'generic:', spawner.room.memory.genericCount, 'remote:', spawner.room.memory.distanceHarvesterCount, 'in transit:', transitCount);
     
-    if(spawner.room.memory.genericCount < MINIMUM_WORKERS) {
-        util.createScalingCreep(spawner, {role:'generic'});
-        console.log('spawning generic worker due to low count');
-    }
-    else if(distanceHarvesterCount < 2) {
-        util.createScalingCreep(spawner, {role:'distanceHarvester', destination:'W2N68'});
-        console.log('Spawning remote harvester');
-    }
-    if(spawner.room.memory.noEnergy == true && spawner.room.memory.targetWorkerCount > MINIMUM_WORKERS) {
-        spawner.room.memory.targetWorkerCount -= 0.002;
-        console.log('target workers', spawner.room.memory.targetWorkerCount);
-    }
-    else if(spawner.room.energyAvailable == Game.spawns['Spawn1'].room.energyCapacityAvailable) {
-        // spawner.room.memory.targetWorkerCount += 1/(genericCount*64);
-        // console.log('target workers', spawner.room.memory.targetWorkerCount);
-        if(spawner.room.memory.targetWorkerCount > spawner.room.memory.genericCount) {
+        if(spawner.room.memory.genericCount < MINIMUM_WORKERS) {
             util.createScalingCreep(spawner, {role:'generic'});
-            console.log('spawning generic worker due to high energy');
+            console.log('spawning generic worker due to low count');
         }
-        else {
-            util.createScalingCreep(spawner, {role:'transit', destination: 'W2N68', destRole:'generic'});
-            console.log('spawning worker for export');
+        // else if(spawner.room.memory.distanceHarvesterCount < 1) {
+        //     util.createScalingCreep(spawner, {role:'distanceHarvester', destination:'W2N68'});
+        //     console.log('Spawning remote harvester');
+        // }
+        if(spawner.room.memory.noEnergy == true && spawner.room.memory.targetWorkerCount > MINIMUM_WORKERS) {
+            spawner.room.memory.targetWorkerCount -= 0.002;
+            console.log(spawner, 'target workers decreasing to', spawner.room.memory.targetWorkerCount);
+        }
+        else if(spawner.room.energyAvailable == spawner.room.energyCapacityAvailable) {
+            spawner.room.memory.targetWorkerCount += 1/(spawner.room.memory.genericCount*64);
+            console.log(spawner, 'target workers increasing to', spawner.room.memory.targetWorkerCount);
+            if(spawner.room.memory.targetWorkerCount > spawner.room.memory.genericCount) {
+                util.createScalingCreep(spawner, {role:'generic'});
+                console.log('spawning generic worker due to high energy');
+            }
+            // else {
+            //     util.createScalingCreep(spawner, {role:'transit', destination: 'W2N68', destRole:'generic'});
+            //     console.log('spawning worker for export');
+            // }
         }
     }
     
