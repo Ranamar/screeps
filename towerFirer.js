@@ -9,7 +9,7 @@
  * shamelessly stolen from reify and then modified
  */
 
-towerFirer = {
+var towerFirer = {
     fire: function(roomName) {
         var towers = Game.rooms[roomName].find(FIND_MY_STRUCTURES,
                             { filter: {'structureType': STRUCTURE_TOWER} });

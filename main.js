@@ -21,7 +21,7 @@ profiler.wrap(function() {
     console.log('--------');
     console.log('CPU used at start of tick', Game.cpu.getUsed());
 
-    for(roomName in Game.rooms) {
+    for(var roomName in Game.rooms) {
         var room = Game.rooms[roomName];
         // console.log('examining room', room);
         if(room.controller.owner && room.controller.owner.username == 'Ranamar') {
@@ -31,11 +31,9 @@ profiler.wrap(function() {
         //prep maintenance role counts by room
         room.memory.genericCount = 0;
         room.memory.distanceHarvesterCount = 0;
+        towerFirer.fire(roomName);
     }
-    console.log('cpu used this tick after dispatcher:', Game.cpu.getUsed());
-
-    towerFirer.fire('W1N69');
-    console.log('cpu used this tick after tower firing:', Game.cpu.getUsed());
+    console.log('cpu used this tick after dispatcher and tower firing:', Game.cpu.getUsed());
 
     //count maintenance roles
     var transitCount = 0;
@@ -117,12 +115,12 @@ profiler.wrap(function() {
     
     console.log('cpu used this tick:', Game.cpu.getUsed());
     
-    var myRoom = Game.rooms['W1N69'];
-    myRoom.memory.counter = myRoom.memory.counter + 1;
-    console.log('log processing counter:', myRoom.memory.counter);
+    // var myRoom = Game.rooms['W1N69'];
+    Memory.counter = Memory.counter + 1;
+    console.log('log processing counter:', Memory.counter);
     
-    if(myRoom.memory.counter >= 250) {
-        myRoom.memory.counter = 0;
+    if(Memory.counter >= 250) {
+        Memory.counter = 0;
         for(roomName in Memory.rooms) {
             analytics.processLogs(Game.rooms[roomName]);
         }

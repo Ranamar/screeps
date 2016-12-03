@@ -1,6 +1,6 @@
 var lodash = require('lodash');
 
-Creep.prototype.selectEnergySource = function() {
+Creep.prototype.selectSource = function() {
     var sources = this.room.memory.energySources;
     if(this.memory.targetIndex == undefined) {
         var leastIndex = 0;
@@ -43,8 +43,8 @@ Creep.prototype.gatherEnergy = function(target) {
 
 //Remove once we have the new move/work framework in place
 module.exports.gatherEnergy = function(creep) {
-    creep.selectEnergySource();
-    var target = Game.getObjectById(creep.room.memory.energySources[creep.targetIndex]);
+    creep.selectSource();
+    var target = Game.getObjectById(creep.room.memory.energySources[creep.memory.targetIndex].id);
     var result = creep.gatherEnergy(target);
     if(result == ERR_NOT_IN_RANGE) {
         creep.moveTo(target);
@@ -62,6 +62,10 @@ module.exports.gatherEnergy = function(creep) {
     }
     return true;
 };
+
+module.exports.unregisterGathering = function(creep) {
+    creep.unregisterGathering();
+}
 
 //Remove once we have the new move/work framework in place
 module.exports.pickupEnergy = function(creep) {
