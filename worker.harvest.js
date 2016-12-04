@@ -16,33 +16,29 @@ Creep.prototype.selectSource = function() {
         this.memory.targetIndex = leastIndex;
         sources[leastIndex].miners.push(this.name);
         this.memory.target = sources[leastIndex].id;
+        // console.log(this.name, 'selected harvest target', this.memory.targetIndex, this.memory.target);
     }
-    else {
-        console.log(this.name, 'already has harvest target', this.memory.targetIndex, this.memory.target);
-    }
+    // else {
+    //     console.log(this.name, 'already has harvest target', this.memory.targetIndex, this.memory.target);
+    // }
 };
 
 Creep.prototype.unregisterGathering = function() {
     var targetIndex = this.memory.targetIndex;
     if(targetIndex != undefined) {
+        // console.log(this.name, 'unregistering from gathering');
         var source = this.room.memory.energySources[targetIndex];
         lodash.pull(source.miners, this.name);
-        this.memory.targetIndex = undefined;
-        this.memory.target = undefined;
+        delete this.memory.targetIndex;
+        delete this.memory.target;
     }
 };
 
 Creep.prototype.gatherEnergy = function(target) {
-    //XXX remove this as soon as things are no longer broken.
-    if(!target) {
-        this.selectSource();
-        target = Game.getObjectById(this.memory.target);
-        console.log(this.name, 'needed to reacquire harvesting target', target);
-    }
     var result = this.harvest(target);
     if(result == ERR_NOT_ENOUGH_RESOURCES) {
         this.room.memory.noEnergy = true;
-        //select new source
+        //select new source?
         // this.unregisterGathering();
         // target = this.selectSource();
     }
@@ -83,20 +79,20 @@ module.exports.pickupEnergy = function(creep) {
     var target = Game.getObjectById(creep.memory.target);
     if(target) {
         var result = creep.pickup(target);
-        console.log('>>', creep.name, 'pickup result', result);
+        // console.log('>>', creep.name, 'pickup result', result);
         if(result == ERR_NOT_IN_RANGE) {
-            console.log('>>', creep.name, 'moving to pickup target', result);
+            // console.log('>>', creep.name, 'moving to pickup target', result);
             creep.moveTo(target);
         }
         else if(result == ERR_FULL || result == ERR_INVALID_TARGET) {
-            console.log('>>', creep.name, 'gives up on pickup', result);
+            // console.log('>>', creep.name, 'gives up on pickup', result);
             //we can't do this; do something else
             return false;
         }
         return true;
     }
     else {
-        console.log('>>', creep.name, 'pickup target disappeared');
+        // console.log('>>', creep.name, 'pickup target disappeared');
         //energy disappeared!
         return false;
     }

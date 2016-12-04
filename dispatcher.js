@@ -21,7 +21,9 @@ var convertTaskToOrder = function(task) {
         rv = { job: 'harvest' };
     }
     else if(task === 'upgrade') {
-        rv = { job: 'upgrade' };
+        rv = {
+            job: 'upgrade',
+        };
     }
     else if(task instanceof ConstructionSite) {
         rv = {
@@ -91,18 +93,22 @@ var assignWorkerJob = function(creep) {
             }
         }
     }
-    //If we're out of energy, get energy
+    //If we're low on of energy, get energy
     if(creep.carry.energy < 20) {
         task = 'harvest';
     }
     //If nobody is upgrading, this is urgent.
     else if(creep.room.memory.upgraders.length == 0) {
         task = 'upgrade';
+        // return {
+        //     job: 'upgrade',
+        //     target: creep.room.controller.id
+        // }
     }
     //Keep a reserve of energy
-    else if(tasks.needEnergy.length > 0 && creep.room.energyCapacityAvailable*0.8 > creep.room.energyAvailable) {
+    else if(tasks.needEnergy.length > 0 /* && creep.room.energyCapacityAvailable > creep.room.energyAvailable */ ) {
         //findClosestByPath randomly uses a ton of cpu if the stars align
-        task = creep.pos.findClosestByRange(tasks.needEnergy);
+        task = creep.pos.findClosestByPath(tasks.needEnergy);
     }
     //Build new buildings
     else if(tasks.needBuilding.length > 0) {
@@ -112,21 +118,21 @@ var assignWorkerJob = function(creep) {
     //Maintain our buildings
     else if(tasks.needRepairs.length > 0) {
         //findClosestByPath randomly uses a ton of cpu if the stars align
-        task = creep.pos.findClosestByRange(tasks.needRepairs);
-        console.log(creep.name, 'assigned repair', task);
+        task = creep.pos.findClosestByPath(tasks.needRepairs);
+        // console.log(creep.name, 'assigned repair', task);
     }
     //We have extra energy to use - aggressively upgrade
     else {
-        console.log('Checking fallback tasks');
-        if(tasks.needEnergy.length > 0 /*&& Math.random() < 0.3*/) {
-            task = tasks.needEnergy.shift();
-        }
+        // if(tasks.needEnergy.length > 0 /*&& Math.random() < 0.3*/) {
+        //     task = tasks.needEnergy.shift();
+        // }
         // else if(Math.random() < 0.1) {
         //     task = creep.room.storage;
         // }
-        else {
+        // else {
             task = 'upgrade';
-        }
+        // }
+        // console.log('Selected fallback task', task);
     }
     if(!task) {
         console.log('***', creep.name, 'did not get a task. energy:', creep.carry.energy);

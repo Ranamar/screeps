@@ -1,6 +1,6 @@
-var builder = require('role.builder');
-var store = require('role.store');
-var upgrader = require('role.upgrader');
+// var builder = require('role.builder');
+// var store = require('role.store');
+// var upgrader = require('role.upgrader');
 
 var harvester = require('worker.harvest');
 var resource = require('worker.resources');
@@ -10,6 +10,7 @@ var structures = require('worker.structures');
 var analytics = require('analytics');
 
 Creep.prototype.assignJob = function(job) {
+    // console.log(this.name, 'assigning job', job.job, job.target);
     this.memory.target = job.target;
     // this.setMode(job.job);
     this.transitionMode(job.job);
@@ -19,31 +20,19 @@ Creep.prototype.transitionMode = function(newMode) {
     if(newMode == this.memory.mode) {
         return;
     }
-    this.say(newMode);
-    //exit old mode
-    switch(this.memory.mode) {
-        case 'harvest':
-            this.selectSource();
-            break;
-        case 'upgrade':
-            this.registerUpgrading();
-            break;
-        default:
-            // console.log(creep.name, 'does nothing exiting', creep.memory.mode);
-            break;
+    // console.log(this.name, 'transitioning mode', newMode);
+    if(!newMode) {
+        console.log(this.name, 'missing mode', this.mode, newMode);
+        this.say('missing mode');
     }
+    else {
+        this.say(newMode);
+    }
+    //exit old mode
+    this.clearMode();
     //enter new mode
     this.memory.mode = newMode;
-    switch(this.memory.mode) {
-        case 'harvest':
-            this.unregisterGathering();
-            break;
-        case 'upgrade':
-            this.unregisterUpgrading();
-            break;
-        default:
-            break;
-    }
+    this.initMode();
 }
 
 Creep.prototype.modeOperation = function(target) {
@@ -60,7 +49,7 @@ Creep.prototype.modeOperation = function(target) {
         case 'storeall':
             return this.storeAny(target);
         case 'upgrade':
-            console.log(this.name, 'upgrading', this.memory.target);
+            // console.log(this.name, 'upgrading', this.room.controller, this.memory.target);
             // this.registerUpgrading();
             return this.upgradeController(this.room.controller);
             break;
@@ -84,9 +73,9 @@ Creep.prototype.workerMove = function() {
     if(result == OK) {
         return;
     }
-    if(!target) {
-        console.log(this.name, 'tried to', this.memory.mode, 'with target', this.memory.target, target, result);
-    }
+    // if(!target) {
+    //     console.log(this.name, 'tried to', this.memory.mode, 'with target', this.memory.target, target, result);
+    // }
     //move if fail
     if(result == ERR_NOT_IN_RANGE) {
         this.moveTo(target);
@@ -104,78 +93,36 @@ Creep.prototype.workerMove = function() {
     }
     //Try operation again
     result = this.modeOperation(target);
-    //TODO: Look for targets of opportunity if failed
+    //TODO: Look for repair/build/reclaim targets of opportunity if failed
 }
 
-Creep.prototype.enterMode = function() {
+Creep.prototype.initMode = function() {
     switch(this.memory.mode) {
         case 'harvest':
-            return harvester.gatherEnergy(this)
+            this.selectSource();
             break;
-        case 'build':
-            return builder.build(this);
-            break;
-        case 'store':
-            return store.storeEnergy(this);
-            break;
-        case 'storeall':
-            return store.storeAll(this);
         case 'upgrade':
-            return upgrader.upgrade(this);
-            break;
-        case 'repair':
-            return builder.repair(this);
-            break;
-        case 'pickup':
-            return harvester.pickupEnergy(this);
+            this.registerUpgrading();
             break;
         default:
-            // console.log(creep.name, 'does nothing with', creep.memory.mode);
-            return false;
+            break;
     }
 };
-Creep.prototype.exitMode = function() {
+
+Creep.prototype.clearMode = function() {
     switch(this.memory.mode) {
         case 'harvest':
-            harvester.unregisterGathering(this);
+            this.unregisterGathering();
             break;
         case 'upgrade':
-            upgrader.exitUpgrade(this);
+            this.unregisterUpgrading();
             break;
         default:
-            // console.log(creep.name, 'does nothing exiting', creep.memory.mode);
+            // console.log(this.name, 'deleting target', this.memory.target);
+            delete this.memory.target;
             break;
     }
-
 };
-
-Creep.prototype.setMode = function(newMode) {
-    if(newMode == this.memory.mode) {
-        return;
-    }
-    // console.log('set', creep.name, 'mode', creep.memory.mode, 'to', newMode);
-    var currentMode = this.memory.mode;
-    this.exitMode();
-    this.say(newMode);
-    // console.log('generic', creep.name, newMode);
-    this.memory.mode = newMode;
-    this.enterMode();
-};
-
-Creep.prototype.work = function() {
-    //currently, our mode entries are our general execution loops
-    var result = this.enterMode();
-    analytics.logStep(this);
-    if(!result) {
-        // console.log(creep.name, 'mode', creep.memory.mode, 'failed to do anything', result);
-        this.setMode('unassigned');
-    }
-
-    if(this.memory.mode != 'harvest' && this.carry.energy < 20 ||
-        this.memory.mode == 'harvest' && this.carry.energy == this.carryCapacity) {
-        this.setMode('unassigned');
-    }
-}
 
 Creep.prototype.moveToNewRoom = function() {
     console.log(this.name, 'moving rooms from', this.pos.roomName, 'to', this.memory.destination);

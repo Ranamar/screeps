@@ -1,4 +1,3 @@
-// var roleStorage = require('role.store');
 var util = require('util');
 var towerFirer = require('towerFirer');
 var dispatcher = require('dispatcher');
@@ -9,10 +8,10 @@ var analytics = require('analytics');
 var distanceHarvest = require('role.distanceHarvester');
 // var colonizer = require('role.colonizer');
 
-var MINIMUM_WORKERS = 5.5;
+var MINIMUM_WORKERS = 6.5;
 
 var profiler = require('screeps-profiler');
-// profiler.enable();
+profiler.enable();
 
 module.exports.loop = function () {
     
@@ -39,6 +38,9 @@ profiler.wrap(function() {
     var transitCount = 0;
     for(var name in Game.creeps) {
         var creep = Game.creeps[name];
+        if(creep.spawning) {
+            continue;
+        }
         // console.log(creep.name, creep.ticksToLive);
         
         // if(creep.ticksToLive < 100) {
@@ -50,13 +52,11 @@ profiler.wrap(function() {
             creep.room.memory.genericCount += 1;
             if(!creep.memory.mode || creep.memory.mode == 'unassigned') {
                 var job = dispatcher.assignJob(creep);
-                // console.log('generic', creep.name, job.job, job.target);
+                // console.log(creep.name, 'unassigned; finding job:', job.job);
                 creep.assignJob(job);
             }
+            // console.log('generic', creep.name, creep.memory.mode, creep.memory.target);
             creep.workerMove();
-            // else {
-                // creep.work();
-            // }
         }
         else if(creep.memory.role == 'distanceHarvester') {
             creep.room.memory.distanceHarvesterCount += 1;
@@ -86,7 +86,7 @@ profiler.wrap(function() {
                 'generic:', spawner.room.memory.genericCount, 'remote:', spawner.room.memory.distanceHarvesterCount, 'in transit:', transitCount);
     
         if(spawner.room.memory.genericCount < MINIMUM_WORKERS) {
-            util.createScalingCreep(spawner, {role:'generic'});
+            util.createScalingCreep(spawner, {role:'generic', mode:'unassigned'});
             console.log('spawning generic worker due to low count');
         }
         // else if(spawner.room.memory.distanceHarvesterCount < 1) {
@@ -101,7 +101,7 @@ profiler.wrap(function() {
             spawner.room.memory.targetWorkerCount += 1/(spawner.room.memory.genericCount*64);
             console.log(spawner, 'target workers increasing to', spawner.room.memory.targetWorkerCount);
             if(spawner.room.memory.targetWorkerCount > spawner.room.memory.genericCount) {
-                util.createScalingCreep(spawner, {role:'generic'});
+                util.createScalingCreep(spawner, {role:'generic', mode:'unassigned'});
                 console.log('spawning generic worker due to high energy');
             }
             // else {
