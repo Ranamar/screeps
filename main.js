@@ -8,7 +8,7 @@ var analytics = require('analytics');
 var distanceHarvest = require('role.distanceHarvester');
 // var colonizer = require('role.colonizer');
 
-var MINIMUM_WORKERS = 6.5;
+var MINIMUM_WORKERS = 5.5;
 
 var profiler = require('screeps-profiler');
 profiler.enable();

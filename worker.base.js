@@ -66,19 +66,19 @@ Creep.prototype.modeOperation = function(target) {
 }
 
 Creep.prototype.localMaintenance = function() {
-        var maintenance = this.pos.findInRange(FIND_STRUCTURES, 3, {filter: (structure) => structure.needsMaintenance()});
-        //lookFor(LOOK_STRUCTURES);
-        var construction = this.pos.findInRange(FIND_CONSTRUCTION_SITES, 3);
-        //lookFor(LOOK_CONSTRUCTION_SITES);
+        var construction = this.pos.findInRange(this.room.memory.tasks.needBuilding, 3);
         //Build before maintenance; we can move faster with more things if we build first, and it doesn't decay *that* fast.
         if(construction.length != 0) {
             var constructionSite = construction[0];
             // there is construction here, build it
             this.build(constructionSite);
         }
-        else if(maintenance.length != 0) {
-            //We already checked if this needs it.
-            this.repair(maintenance[0]);
+        else  {
+            var maintenance = this.pos.findInRange(FIND_STRUCTURES, 3, {filter: (structure) => structure.needsMaintenance()});
+            if(maintenance.length != 0) {
+                //We already checked if this needs it.
+                this.repair(maintenance[0]);
+            }
         }
     }
 
@@ -110,7 +110,7 @@ Creep.prototype.workerMove = function() {
     //Try operation again
     result = this.modeOperation(target);
     //Look for repair/build/reclaim targets of opportunity if failed
-    if(result != OK && this.carry.energy > 50) {
+    if(result != OK && this.carry.energy > 70) {
         // console.log('>>', this.name, 'going for local maintenance', this.pos);
         this.localMaintenance();
     }
