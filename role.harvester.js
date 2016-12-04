@@ -18,6 +18,7 @@ var selectSource = function(creep) {
         sources[leastIndex].miners.push(creep.name);
         // console.log('Assigning least used location', creep.memory.targetIndex, sources[creep.memory.targetIndex].miners.length);
     }
+    creep.memory.target = sources[creep.memory.targetIndex].id;
     return Game.getObjectById(sources[creep.memory.targetIndex].id);
 }
 

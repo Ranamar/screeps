@@ -2,7 +2,7 @@ var lodash = require('lodash');
 
 Creep.prototype.selectSource = function() {
     var sources = this.room.memory.energySources;
-    if(this.memory.targetIndex == undefined) {
+    if(this.memory.target == undefined) {
         var leastIndex = 0;
         var leastCount = Number.MAX_VALUE;
         var source = null;
@@ -15,6 +15,10 @@ Creep.prototype.selectSource = function() {
         }
         this.memory.targetIndex = leastIndex;
         sources[leastIndex].miners.push(this.name);
+        this.memory.target = sources[leastIndex].id;
+    }
+    else {
+        console.log(this.name, 'already has harvest target', this.memory.targetIndex, this.memory.target);
     }
 };
 
@@ -24,10 +28,17 @@ Creep.prototype.unregisterGathering = function() {
         var source = this.room.memory.energySources[targetIndex];
         lodash.pull(source.miners, this.name);
         this.memory.targetIndex = undefined;
+        this.memory.target = undefined;
     }
 };
 
 Creep.prototype.gatherEnergy = function(target) {
+    //XXX remove this as soon as things are no longer broken.
+    if(!target) {
+        this.selectSource();
+        target = Game.getObjectById(this.memory.target);
+        console.log(this.name, 'needed to reacquire harvesting target', target);
+    }
     var result = this.harvest(target);
     if(result == ERR_NOT_ENOUGH_RESOURCES) {
         this.room.memory.noEnergy = true;
@@ -53,7 +64,7 @@ module.exports.gatherEnergy = function(creep) {
         creep.room.memory.noEnergy = true;
         //reselect source
         creep.unregisterGathering();
-        target = creep.selectEnergySource();
+        target = creep.selectSource();
         //Go to wherever we happen to have picked.
         creep.moveTo(target);
     }

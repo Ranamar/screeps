@@ -4,6 +4,7 @@ var upgradeController = function(creep) {
     if(creep.carry.energy == 0) {
         return false;
     }
+    creep.memory.target = creep.room.controller.id;
     if(!creep.room.memory.upgraders.includes(creep.name)) {
         creep.room.memory.upgraders.push(creep.name);
     }

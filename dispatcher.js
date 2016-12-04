@@ -12,9 +12,9 @@ var analytics = require('analytics');
  
 var convertTaskToOrder = function(task) {
     var rv = null;
-    console.log('>> task', task);
+    // console.log('>> task', task);
     if(!task) {
-        console.log('>> Received bad task', task);
+        // console.log('>> Received bad task', task);
         return null;
     }
     if(task === 'harvest') {
@@ -30,7 +30,7 @@ var convertTaskToOrder = function(task) {
         };
     }
     else if(task instanceof Resource) {
-        console.log('>> assignment: pick up resource');
+        // console.log('>> assignment: pick up resource');
         rv = {
             job: 'pickup',
             target: task.id
@@ -52,19 +52,19 @@ var convertTaskToOrder = function(task) {
         }
         else {
             //TODO: investigate null tasks
-            console.log('received structure with no task', task, task instanceof Structure);
-            if(task instanceof Structure) {
-                console.log('needs repairs?', task, task.hits, task.hitsMax, task.needsRepairs());
-            }
-            else {
-                console.log('not a structure', task);
-            }
+            // console.log('received structure with no task', task, task instanceof Structure);
+            // if(task instanceof Structure) {
+            //     console.log('needs repairs?', task, task.hits, task.hitsMax, task.needsRepairs());
+            // }
+            // else {
+            //     console.log('not a structure', task);
+            // }
             rv = {
                 job: 'unassigned'
             };
         }
     }
-    // console.log('converted Task', rv, rv.job);
+    // console.log('>> converted Task', rv.job, rv.target);
     return rv;
 }
 
@@ -107,7 +107,7 @@ var assignWorkerJob = function(creep) {
     //Build new buildings
     else if(tasks.needBuilding.length > 0) {
         //findClosestByPath randomly uses a ton of cpu if the stars align
-        task = creep.pos.findClosestByRange(tasks.needBuilding);
+        task = creep.pos.findClosestByPath(tasks.needBuilding);
     }
     //Maintain our buildings
     else if(tasks.needRepairs.length > 0) {
@@ -147,18 +147,6 @@ var structureNeedsEnergy = function(structure) {
             structure.structureType == STRUCTURE_SPAWN ||
             structure.structureType == STRUCTURE_TOWER)
             && structure.energy < structure.energyCapacity;
-}
-
-var structureNeedsRepairs = function(structure) {
-    if(!structure) {
-        console.log('bad repair target', structure);
-        return false;
-    }
-    var dynamicScore = true;
-    if(structure.structureType == STRUCTURE_ROAD) {
-        dynamicScore = analytics.getWalkScore(structure.pos) > 0;
-    }
-    return dynamicScore && (structure.hits < structure.hitsMax/2) && (structure.hits < 25000);
 }
 
 var findTasks = function(room) {

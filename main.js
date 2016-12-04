@@ -12,7 +12,7 @@ var distanceHarvest = require('role.distanceHarvester');
 var MINIMUM_WORKERS = 5.5;
 
 var profiler = require('screeps-profiler');
-profiler.enable();
+// profiler.enable();
 
 module.exports.loop = function () {
     
@@ -48,15 +48,15 @@ profiler.wrap(function() {
         if(creep.memory.role == 'generic') {
             // console.log('generic', creep.name, creep.memory.mode);
             creep.room.memory.genericCount += 1;
-            if(creep.memory.mode == 'unassigned') {
+            if(!creep.memory.mode || creep.memory.mode == 'unassigned') {
                 var job = dispatcher.assignJob(creep);
                 // console.log('generic', creep.name, job.job, job.target);
                 creep.assignJob(job);
             }
-            else {
-                creep.work();
-            }
-            analytics.logStep(creep);
+            creep.workerMove();
+            // else {
+                // creep.work();
+            // }
         }
         else if(creep.memory.role == 'distanceHarvester') {
             creep.room.memory.distanceHarvesterCount += 1;
