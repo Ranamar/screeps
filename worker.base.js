@@ -11,16 +11,15 @@ var analytics = require('analytics');
 
 Creep.prototype.assignJob = function(job) {
     // console.log(this.name, 'assigning job', job.job, job.target);
-    this.memory.target = job.target;
-    // this.setMode(job.job);
-    this.transitionMode(job.job);
+    // this.memory.target = job.target;
+    this.transitionMode(job.job, job.target);
 }
 
-Creep.prototype.transitionMode = function(newMode) {
+Creep.prototype.transitionMode = function(newMode, newTarget) {
     if(newMode == this.memory.mode) {
         return;
     }
-    // console.log(this.name, 'transitioning mode', newMode);
+    // console.log(this.name, 'transitioning mode', newMode, newTarget);
     if(!newMode) {
         console.log(this.name, 'missing mode', this.mode, newMode);
         this.say('missing mode');
@@ -32,7 +31,7 @@ Creep.prototype.transitionMode = function(newMode) {
     this.clearMode();
     //enter new mode
     this.memory.mode = newMode;
-    this.initMode();
+    this.initMode(newMode, newTarget);
 }
 
 Creep.prototype.modeOperation = function(target) {
@@ -66,6 +65,23 @@ Creep.prototype.modeOperation = function(target) {
     }
 }
 
+Creep.prototype.localMaintenance = function() {
+        var maintenance = this.pos.findInRange(FIND_STRUCTURES, 3, {filter: (structure) => structure.needsMaintenance()});
+        //lookFor(LOOK_STRUCTURES);
+        var construction = this.pos.findInRange(FIND_CONSTRUCTION_SITES, 3);
+        //lookFor(LOOK_CONSTRUCTION_SITES);
+        //Build before maintenance; we can move faster with more things if we build first, and it doesn't decay *that* fast.
+        if(construction.length != 0) {
+            var constructionSite = construction[0];
+            // there is construction here, build it
+            this.build(constructionSite);
+        }
+        else if(maintenance.length != 0) {
+            //We already checked if this needs it.
+            this.repair(maintenance[0]);
+        }
+    }
+
 Creep.prototype.workerMove = function() {
     var target = Game.getObjectById(this.memory.target);
     //Try operation
@@ -93,11 +109,16 @@ Creep.prototype.workerMove = function() {
     }
     //Try operation again
     result = this.modeOperation(target);
-    //TODO: Look for repair/build/reclaim targets of opportunity if failed
+    //Look for repair/build/reclaim targets of opportunity if failed
+    if(result != OK && this.carry.energy > 50) {
+        // console.log('>>', this.name, 'going for local maintenance', this.pos);
+        this.localMaintenance();
+    }
 }
 
-Creep.prototype.initMode = function() {
-    switch(this.memory.mode) {
+Creep.prototype.initMode = function(mode, target) {
+    this.memory.mode = mode;
+    switch(mode) {
         case 'harvest':
             this.selectSource();
             break;
@@ -105,6 +126,7 @@ Creep.prototype.initMode = function() {
             this.registerUpgrading();
             break;
         default:
+            this.memory.target = target;
             break;
     }
 };

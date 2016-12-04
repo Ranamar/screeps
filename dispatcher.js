@@ -53,14 +53,7 @@ var convertTaskToOrder = function(task) {
             };
         }
         else {
-            //TODO: investigate null tasks
-            // console.log('received structure with no task', task, task instanceof Structure);
-            // if(task instanceof Structure) {
-            //     console.log('needs repairs?', task, task.hits, task.hitsMax, task.needsRepairs());
-            // }
-            // else {
-            //     console.log('not a structure', task);
-            // }
+            console.log('received structure with no task', task);
             rv = {
                 job: 'unassigned'
             };
@@ -136,7 +129,7 @@ var assignWorkerJob = function(creep) {
     }
     if(!task) {
         console.log('***', creep.name, 'did not get a task. energy:', creep.carry.energy);
-        console.log('room energy full?', creep.room.energyCapacityAvailable, creep.room.energyCapacityAvailable*0.9,  creep.room.energyAvailable);
+        console.log('room energy full?', creep.room.energyCapacityAvailable, creep.room.energyCapacityAvailable,  creep.room.energyAvailable);
         console.log('specific receptacles', tasks.needEnergy.length, Game.spawns['Spawn1'].energy);
         console.log('repairs?', tasks.needRepairs, tasks.needRepairs.length);
         console.log('building?', tasks.needBuilding.length);
@@ -158,7 +151,7 @@ var structureNeedsEnergy = function(structure) {
 var findTasks = function(room) {
     var construction = room.find(FIND_CONSTRUCTION_SITES);
     
-    var needEnergy = room.find(FIND_MY_STRUCTURES, {filter: structureNeedsEnergy});
+    var needEnergy = room.find(FIND_MY_STRUCTURES, {filter: (structure) => structure.needsEnergy()});
 
     var needRepairs = room.find(FIND_STRUCTURES, {filter: (structure) => structure.needsRepairs()});
 

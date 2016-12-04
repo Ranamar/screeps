@@ -12,4 +12,5 @@ Creep.prototype.registerUpgrading = function() {
 Creep.prototype.unregisterUpgrading = function() {
     // console.log(this.name, 'unregistering from upgrade list');
     lodash.pull(this.room.memory.upgraders, this.name);
+    delete this.memory.target;
 }
