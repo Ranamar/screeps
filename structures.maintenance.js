@@ -5,6 +5,8 @@ var analytics = require('analytics');
 // The math is the same as for building it except with 50 instead of 300 and 250 instead of 1500 for road costs.
 var MIN_VALUABLE_ROAD_SCORE = 150;
 
+var WALL_TARGET_STRENGTH = 25000;
+
 // Structure.prototype.needsRepairsExt = function(percentDamaged, maxHits) {
 //     var dynamicScore = true;
 //     if(this.structureType == STRUCTURE_ROAD) {
@@ -21,23 +23,29 @@ Structure.prototype.needsEnergy = function() {
 }
 
 Structure.prototype.needsRepairs = function() {
+    return (this.hits < this.hitsMax*0.5) && (this.hits < WALL_TARGET_STRENGTH);
+};
+
+StructureRoad.prototype.needsRepairs = function() {
     var dynamicScore = true;
     if(this.structureType == STRUCTURE_ROAD) {
         dynamicScore = analytics.getWalkScore(this.pos) > MIN_VALUABLE_ROAD_SCORE;
     }
-    return (this.hits < this.hitsMax*0.5) && (this.hits < 25000) && dynamicScore;
+    return (this.hits < this.hitsMax*0.5) && (this.hits < WALL_TARGET_STRENGTH) && dynamicScore;
 };
 
 Structure.prototype.needsMaintenance = function() {
+    return (this.hits < this.hitsMax*0.8) && (this.hits < WALL_TARGET_STRENGTH);
+};
+
+StructureRoad.prototype.needsMaintenance = function() {
     var dynamicScore = true;
-    if(this.structureType == STRUCTURE_ROAD) {
-        dynamicScore = analytics.getWalkScore(this.pos) > MIN_VALUABLE_ROAD_SCORE;
-    }
-    return (this.hits < this.hitsMax*0.8) && (this.hits < 25000) && dynamicScore;
+    dynamicScore = analytics.getWalkScore(this.pos) > MIN_VALUABLE_ROAD_SCORE;
+    return (this.hits < this.hitsMax*0.8) && (this.hits < WALL_TARGET_STRENGTH) && dynamicScore;
 };
 
 Creep.prototype.checkedRepair = function(repTarget) {
-    // console.log(this.name, 'repairing', repTarget, repTarget.pos, repTarget.hits, repTarget.hitsMax);
+    console.log(this.name, 'repairing', repTarget, repTarget.pos, repTarget.hits, repTarget.hitsMax);
     if(!(repTarget.needsMaintenance())) {
         console.log(repTarget, "doesn't need repairs");
         //repair never returns this, so we can overload this return.

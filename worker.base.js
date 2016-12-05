@@ -8,6 +8,7 @@ var maintenance = require('structures.maintenance');
 var structures = require('worker.structures');
 
 var analytics = require('analytics');
+var dispatcher = require('dispatcher');
 
 Creep.prototype.assignJob = function(job) {
     // console.log(this.name, 'assigning job', job.job, job.target);
@@ -66,6 +67,7 @@ Creep.prototype.modeOperation = function(target) {
 }
 
 Creep.prototype.localMaintenance = function() {
+    if(this.memory.tasks) {
         var construction = this.pos.findInRange(this.room.memory.tasks.needBuilding, 3);
         //Build before maintenance; we can move faster with more things if we build first, and it doesn't decay *that* fast.
         if(construction.length != 0) {
@@ -74,13 +76,19 @@ Creep.prototype.localMaintenance = function() {
             this.build(constructionSite);
         }
         else  {
-            var maintenance = this.pos.findInRange(FIND_STRUCTURES, 3, {filter: (structure) => structure.needsMaintenance()});
+            var maintenance = this.pos.findInRange(this.room.memory.tasks.needMaintenance, 3, {filter: (structure) => structure.needsMaintenance()});
             if(maintenance.length != 0) {
                 //We already checked if this needs it.
                 this.repair(maintenance[0]);
             }
         }
+        var looseResource = this.pos.findInRange(this.room.memory.tasks.resources, 1);
+        if(looseResource.length > 0) {
+            this.pickup(looseResource[0]);
+        }
     }
+    //do differently if we haven't done a dispatch scan
+}
 
 Creep.prototype.workerMove = function() {
     var target = Game.getObjectById(this.memory.target);
@@ -92,21 +100,24 @@ Creep.prototype.workerMove = function() {
     // if(!target) {
     //     console.log(this.name, 'tried to', this.memory.mode, 'with target', this.memory.target, target, result);
     // }
-    //move if fail
+    if(result == ERR_FULL ||
+        result == ERR_NOT_ENOUGH_RESOURCES ||
+        result == ERR_INVALID_TARGET ||
+        result == ERR_NO_BODYPART) {
+        //No capacity to do this job - find something else to do.
+        this.transitionMode('unassigned');
+        var job = dispatcher.assignJob(this);
+        this.assignJob(job);
+        result = this.modeOperation(target);
+        // return;
+    }
+    //move if out of range
     if(result == ERR_NOT_IN_RANGE) {
         this.moveTo(target);
         //Log movement here, because this is the only time roads decay
         analytics.logStep(this);
     }
     //Handle other error cases
-    else if(result == ERR_FULL ||
-            result == ERR_NOT_ENOUGH_RESOURCES ||
-            result == ERR_INVALID_TARGET) {
-        //Out of space - find something else to do.
-        this.transitionMode('unassigned');
-        //TODO: reassign in same tick
-        return;
-    }
     //Try operation again
     result = this.modeOperation(target);
     //Look for repair/build/reclaim targets of opportunity if failed
@@ -140,7 +151,7 @@ Creep.prototype.clearMode = function() {
             this.unregisterUpgrading();
             break;
         default:
-            // console.log(this.name, 'deleting target', this.memory.target);
+            console.log(this.name, 'deleting target', this.memory.target);
             delete this.memory.target;
             break;
     }

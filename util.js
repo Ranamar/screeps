@@ -9,13 +9,25 @@
 
 module.exports.createScalingCreep = function(spawn, settings) {
     var energy = spawn.room.energyAvailable;
-    var block = [WORK, CARRY, MOVE];
-    var blockCost = 200;
-    var totalCost = 0;
+    // var block = [WORK, CARRY, MOVE];
+    // var blockCost = 200;
+    // var totalCost = 0;
     var largest = [];
-    while(totalCost + blockCost <= energy) {
-        largest = largest.concat(block);
-        totalCost += blockCost;
+    // while(totalCost + blockCost <= energy) {
+    //     largest = largest.concat(block);
+    //     totalCost += blockCost;
+    // }
+    if(energy >= 200) {
+        largest = largest.concat([WORK, CARRY, MOVE])
+    }
+    if(energy >= 400) {
+        largest = largest.concat([WORK, CARRY, MOVE])
+    }
+    if(energy >= 600) {
+        largest = largest.concat([WORK, CARRY, MOVE])
+    }
+    if(energy >= 850) {
+        largest = largest.concat([WORK, WORK, MOVE])
     }
     var result = spawn.createCreep(largest, null, settings);
 }

@@ -45,8 +45,7 @@ var convertTaskToOrder = function(task) {
                 target: task.id
             };
         }
-        // else if(structureNeedsRepairs(task)) {
-        else if((task instanceof Structure) && task.needsRepairs()) {
+        else if((task instanceof Structure) && task.needsMaintenance()) {
             rv = {
                 job: 'repair',
                 target: task.id
@@ -79,7 +78,7 @@ var assignWorkerJob = function(creep) {
     // This code needs work because it does not handle stuff on the far side of walls well.
     if(tasks.droppedEnergy.length > 0) {
         var energyTarget = creep.pos.findClosestByPath(tasks.droppedEnergy);
-        if(energyTarget && energyTarget.amount > 40 && creep.carryCapacity - creep.carry.energy >= 50) {
+        if(energyTarget /*&& energyTarget.amount > 20*/ && creep.carry.energy < 50) {
             return {
                 job: 'pickup',
                 target: energyTarget.id
@@ -87,7 +86,7 @@ var assignWorkerJob = function(creep) {
         }
     }
     //If we're low on of energy, get energy
-    if(creep.carry.energy < 20) {
+    if(creep.carry.energy < 40) {
         task = 'harvest';
     }
     //If nobody is upgrading, this is urgent.
@@ -153,13 +152,16 @@ var findTasks = function(room) {
     
     var needEnergy = room.find(FIND_MY_STRUCTURES, {filter: (structure) => structure.needsEnergy()});
 
-    var needRepairs = room.find(FIND_STRUCTURES, {filter: (structure) => structure.needsRepairs()});
+    var needMaintenance = room.find(FIND_STRUCTURES, {filter: (structure) => structure.needsMaintenance()});
+
+    var needRepairs = lodash.filter(needMaintenance, (structure) => structure.needsRepairs());
 
     var droppedEnergy = room.find(FIND_DROPPED_RESOURCES);
 
     var results = {
         droppedEnergy: droppedEnergy,
         needEnergy: needEnergy,
+        needMaintenance: needMaintenance,
         needRepairs: needRepairs,
         needBuilding: construction
     }

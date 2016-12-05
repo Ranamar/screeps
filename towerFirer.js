@@ -23,7 +23,7 @@ var towerFirer = {
                 tower.attack(target);
             }
             else {
-                //TODO this is the most expensive thing that we do, it looks like
+                //The only reason we can afford to do this often is because we cache out the results of the find() call at the start of the tick.
                 var repairTargets = [];
                 if(!repairables) {
                     repairTargets = tower.pos.findInRange(FIND_STRUCTURES, 10, { filter: (structure) => structure.needsRepairs() });
