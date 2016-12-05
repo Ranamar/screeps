@@ -17,10 +17,6 @@ Creep.prototype.assignJob = function(job) {
 }
 
 Creep.prototype.transitionMode = function(newMode, newTarget) {
-    if(newMode == this.memory.mode) {
-        return;
-    }
-    // console.log(this.name, 'transitioning mode', newMode, newTarget);
     if(!newMode) {
         console.log(this.name, 'missing mode', this.mode, newMode);
         this.say('missing mode');
@@ -105,11 +101,9 @@ Creep.prototype.workerMove = function() {
         result == ERR_INVALID_TARGET ||
         result == ERR_NO_BODYPART) {
         //No capacity to do this job - find something else to do.
-        this.transitionMode('unassigned');
         var job = dispatcher.assignJob(this);
         this.assignJob(job);
         result = this.modeOperation(target);
-        // return;
     }
     //move if out of range
     if(result == ERR_NOT_IN_RANGE) {
@@ -151,7 +145,6 @@ Creep.prototype.clearMode = function() {
             this.unregisterUpgrading();
             break;
         default:
-            console.log(this.name, 'deleting target', this.memory.target);
             delete this.memory.target;
             break;
     }

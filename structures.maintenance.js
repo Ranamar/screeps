@@ -45,6 +45,10 @@ StructureRoad.prototype.needsMaintenance = function() {
 };
 
 Creep.prototype.checkedRepair = function(repTarget) {
+    if(!(repTarget instanceof Structure)) {
+        console.log('got invalid repair target', repTarget);
+        return ERR_INVALID_TARGET;
+    }
     console.log(this.name, 'repairing', repTarget, repTarget.pos, repTarget.hits, repTarget.hitsMax);
     if(!(repTarget.needsMaintenance())) {
         console.log(repTarget, "doesn't need repairs");

@@ -35,6 +35,7 @@ Creep.prototype.unregisterGathering = function() {
 };
 
 Creep.prototype.gatherEnergy = function(target) {
+    //Harvesters will cheerfully keep harvesting even if they have no space, so we have to check.
     if(this.carry.energy < this.carryCapacity) {
         var result = this.harvest(target);
         if(result == ERR_NOT_ENOUGH_RESOURCES) {
