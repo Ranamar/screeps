@@ -12,7 +12,11 @@ var dispatcher = require('dispatcher');
 
 Creep.prototype.assignJob = function(job) {
     // console.log(this.name, 'assigning job', job.job, job.target);
-    // this.memory.target = job.target;
+    if(!job) {
+        console.log(this.name, 'assigned no job; bailing out');
+        this.transitionMode('unassigned');
+        return;
+    }
     this.transitionMode(job.job, job.target);
 }
 
@@ -63,7 +67,7 @@ Creep.prototype.modeOperation = function(target) {
 }
 
 Creep.prototype.localMaintenance = function() {
-    if(this.memory.tasks) {
+    if(this.room.memory.tasks) {
         var construction = this.pos.findInRange(this.room.memory.tasks.needBuilding, 3);
         //Build before maintenance; we can move faster with more things if we build first, and it doesn't decay *that* fast.
         if(construction.length != 0) {
@@ -83,7 +87,12 @@ Creep.prototype.localMaintenance = function() {
             this.pickup(looseResource[0]);
         }
     }
-    //do differently if we haven't done a dispatch scan
+    //do differently if we haven't done a dispatch scan?
+}
+
+Creep.prototype.findJob = function() {
+    var job = dispatcher.assignJob(this);
+    this.assignJob(job);
 }
 
 Creep.prototype.workerMove = function() {
@@ -93,16 +102,13 @@ Creep.prototype.workerMove = function() {
     if(result == OK) {
         return;
     }
-    // if(!target) {
-    //     console.log(this.name, 'tried to', this.memory.mode, 'with target', this.memory.target, target, result);
-    // }
     if(result == ERR_FULL ||
         result == ERR_NOT_ENOUGH_RESOURCES ||
         result == ERR_INVALID_TARGET ||
         result == ERR_NO_BODYPART) {
+        // console.log(this.name, 'tried to', this.memory.mode, 'with target', this.memory.target, target, result);
         //No capacity to do this job - find something else to do.
-        var job = dispatcher.assignJob(this);
-        this.assignJob(job);
+        this.findJob();
         result = this.modeOperation(target);
     }
     //move if out of range

@@ -18,16 +18,20 @@ module.exports.createScalingCreep = function(spawn, settings) {
     //     totalCost += blockCost;
     // }
     if(energy >= 200) {
-        largest = largest.concat([WORK, CARRY, MOVE])
+        largest = largest.concat([WORK, CARRY, MOVE]);
     }
     if(energy >= 400) {
-        largest = largest.concat([WORK, CARRY, MOVE])
+        largest = largest.concat([WORK, CARRY, MOVE]);
     }
     if(energy >= 600) {
-        largest = largest.concat([WORK, CARRY, MOVE])
+        largest = largest.concat([WORK, CARRY, MOVE]);
     }
     if(energy >= 850) {
-        largest = largest.concat([WORK, WORK, MOVE])
+        largest = largest.concat([WORK, WORK, MOVE]);
+    }
+    //If we truly have a ton of energy, double-stack it.
+    if(energy >= 1700) {
+        largest = largest.concat([WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE]);
     }
     var result = spawn.createCreep(largest, null, settings);
 }

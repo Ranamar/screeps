@@ -1,5 +1,5 @@
 var util = require('util');
-var towerFirer = require('towerFirer');
+var towerFirer = require('structures.towers');
 var dispatcher = require('dispatcher');
 var worker = require('worker.base');
 var maintenance = require('structures.maintenance');
@@ -7,8 +7,10 @@ var maintenance = require('structures.maintenance');
 var analytics = require('analytics');
 var distanceHarvest = require('role.distanceHarvester');
 // var colonizer = require('role.colonizer');
+var experimental = require('worker.experimental');
 
 var MINIMUM_WORKERS = 6.5;
+var MAXIMUM_WORKERS = 13.5;
 
 var profiler = require('screeps-profiler');
 profiler.enable();
@@ -23,7 +25,7 @@ profiler.wrap(function() {
     for(var roomName in Game.rooms) {
         var room = Game.rooms[roomName];
         // console.log('examining room', room);
-        if(room.controller.owner && room.controller.owner.username == 'Ranamar') {
+        if(room.controller && room.controller.owner && room.controller.owner.username == 'Ranamar') {
             // console.log('is owned by me');
             dispatcher.findTasks(room);
         }
@@ -70,6 +72,9 @@ profiler.wrap(function() {
             transitCount += 1;
             creep.moveToNewRoom();
         }
+        else {
+            experimental.runExperimental(creep);
+        }
         // else if(creep.memory.role == 'thief') {
         //     roleStorage.stealEnergy(creep);
         // }
@@ -93,11 +98,15 @@ profiler.wrap(function() {
         //     util.createScalingCreep(spawner, {role:'distanceHarvester', destination:'W2N68'});
         //     console.log('Spawning remote harvester');
         // }
+        else if(spawnName == 'Spawn1' && !('Miner' in Memory.creeps)) {
+            console.log('spawning miner');
+            Game.spawns.Spawn1.createCreep([WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE], 'Miner', {role:'miner'});
+        }
         if(spawner.room.memory.noEnergy == true && spawner.room.memory.targetWorkerCount > MINIMUM_WORKERS) {
             spawner.room.memory.targetWorkerCount -= 0.002;
             console.log(spawner, 'target workers decreasing to', spawner.room.memory.targetWorkerCount);
         }
-        else if(spawner.room.energyAvailable == spawner.room.energyCapacityAvailable) {
+        else if(spawner.room.energyAvailable == spawner.room.energyCapacityAvailable && spawner.room.memory.targetWorkerCount < MAXIMUM_WORKERS) {
             spawner.room.memory.targetWorkerCount += 1/(spawner.room.memory.genericCount*64);
             console.log(spawner, 'target workers increasing to', spawner.room.memory.targetWorkerCount);
             if(spawner.room.memory.targetWorkerCount > spawner.room.memory.genericCount) {

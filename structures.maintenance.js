@@ -49,10 +49,10 @@ Creep.prototype.checkedRepair = function(repTarget) {
         console.log('got invalid repair target', repTarget);
         return ERR_INVALID_TARGET;
     }
-    console.log(this.name, 'repairing', repTarget, repTarget.pos, repTarget.hits, repTarget.hitsMax);
+    // console.log(this.name, 'repairing', repTarget, repTarget.pos, repTarget.hits, repTarget.hitsMax);
     if(!(repTarget.needsMaintenance())) {
-        console.log(repTarget, "doesn't need repairs");
-        //repair never returns this, so we can overload this return.
+        // console.log(repTarget, "doesn't need repairs");
+        //repair never returns this, so we can overload this return value.
         return ERR_FULL;
     }
     var attempt = this.repair(repTarget);

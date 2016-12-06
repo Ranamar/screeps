@@ -98,7 +98,7 @@ var assignWorkerJob = function(creep) {
         // }
     }
     //Keep a reserve of energy
-    else if(tasks.needEnergy.length > 0 /* && creep.room.energyCapacityAvailable > creep.room.energyAvailable */ ) {
+    else if(tasks.needEnergy.length > 0 && creep.room.energyCapacityAvailable > creep.room.energyAvailable ) {
         //findClosestByPath randomly uses a ton of cpu if the stars align
         task = creep.pos.findClosestByPath(tasks.needEnergy);
     }
@@ -106,6 +106,7 @@ var assignWorkerJob = function(creep) {
     else if(tasks.needBuilding.length > 0) {
         //findClosestByPath randomly uses a ton of cpu if the stars align
         task = creep.pos.findClosestByPath(tasks.needBuilding);
+        console.log(creep.name, 'assigned building');
     }
     //Maintain our buildings
     else if(tasks.needRepairs.length > 0) {
@@ -115,9 +116,9 @@ var assignWorkerJob = function(creep) {
     }
     //We have extra energy to use - aggressively upgrade
     else {
-        // if(tasks.needEnergy.length > 0 /*&& Math.random() < 0.3*/) {
-        //     task = tasks.needEnergy.shift();
-        // }
+        if(tasks.needEnergy.length > 0 /*&& Math.random() < 0.3*/) {
+            task = tasks.needEnergy.shift();
+        }
         // else if(Math.random() < 0.1) {
         //     task = creep.room.storage;
         // }
@@ -127,7 +128,7 @@ var assignWorkerJob = function(creep) {
         // console.log('Selected fallback task', task);
     }
     if(!task) {
-        console.log('***', creep.name, 'did not get a task. energy:', creep.carry.energy);
+        console.log('***', creep.name, creep.pos, 'did not get a task. Energy:', creep.carry.energy);
         console.log('room energy full?', creep.room.energyCapacityAvailable, creep.room.energyCapacityAvailable,  creep.room.energyAvailable);
         console.log('specific receptacles', tasks.needEnergy.length, Game.spawns['Spawn1'].energy);
         console.log('repairs?', tasks.needRepairs, tasks.needRepairs.length);
