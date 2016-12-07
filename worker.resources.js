@@ -8,4 +8,6 @@ Creep.prototype.storeAny = function(target) {
             return this.transfer(target, resource);
         }
     }
+    //We don't have any resources to store
+    return ERR_NOT_ENOUGH_RESOURCES;
 }

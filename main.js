@@ -131,7 +131,7 @@ profiler.wrap(function() {
     if(Memory.counter >= 250) {
         Memory.counter = 0;
         for(roomName in Memory.rooms) {
-            analytics.processLogs(Game.rooms[roomName]);
+            analytics.processLogs(roomName);
         }
         console.log('cpu used this tick after updating step logs:', Game.cpu.getUsed());
     }

@@ -1,5 +1,6 @@
 var lodash = require('lodash');
 var analytics = require('analytics');
+var profiler = require('screeps-profiler');
 
 /*
  * Module code goes here. Use 'module.exports' to export things:
@@ -170,7 +171,11 @@ var findTasks = function(room) {
     return results;
 }
 
-module.exports = {
+var dispatcher = {
     findTasks: findTasks,
-    assignJob: assignWorkerJob
+    assignJob: assignWorkerJob,
+    structureNeedsEnergy: structureNeedsEnergy
 };
+profiler.registerObject(dispatcher, 'dispatcher');
+
+module.exports = dispatcher;

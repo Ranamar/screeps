@@ -8,15 +8,16 @@
  */
  
 var lodash = require('lodash');
+var profiler = require('screeps-profiler');
 
 
-module.exports.getWalkScore = function(pos) {
+var getWalkScore = function(pos) {
     var stringKey = JSON.stringify(pos);
     var steplog = Game.rooms[pos.roomName].memory.tileLog[stringKey];
     return lodash.sum(steplog);
 }
 
-module.exports.logStep = function(creep) {
+var logStep = function(creep) {
     //We serialize the position even though the result is a little bigger so it's easy to get out but still a sparse array.
     var stringKey = JSON.stringify(creep.pos);
     if(!('tileLog' in creep.room.memory)) {
@@ -31,6 +32,7 @@ module.exports.logStep = function(creep) {
         creep.room.memory.tileLog[stringKey] = newStepLog;
     }
 }
+profiler.registerFN(logStep, "analytics.logStep");
 
 //(roadCost/delay) <= (roadLife/sampleWindow)*(partCost/creepLife)*partsSampled
 //roadLife=50,000; sampleWindow=1,000; creepLife=1,500; partCost assumed to be 50
@@ -39,7 +41,7 @@ var roadMinScoreLookup = {
     'swamp': (1500*3)/(4*5),
     'plain': (300*3)/(5)
 };
-var dropValueRoad = function(spot, tileScore) {
+function dropValueRoad(spot, tileScore) {
     var ticksOnLand;
     var roadCost;
     var room = Game.rooms[spot.roomName];
@@ -53,20 +55,23 @@ var dropValueRoad = function(spot, tileScore) {
     }
 }
 
-module.exports.processLogs = function(room) {
-    if(!room || !('tileLog' in room.memory))
+var processLogs = function(roomName) {
+    var roomMemory = Memory.rooms[roomName];
+    if(!('tileLog' in roomMemory))
         return;
-    console.log('processing step logs', room);
-    for(spotString in room.memory.tileLog) {
+    console.log('processing step logs', roomName);
+    var tileLog = roomMemory.tileLog;
+    var room = Game.rooms[roomName];
+    for(spotString in tileLog) {
         //deserialize our position
         var deserialized = JSON.parse(spotString);
         var spot = new RoomPosition(deserialized.x, deserialized.y, deserialized.roomName);
         
         //calculate parts per 1000 ticks to prune array
-        var steplog = room.memory.tileLog[spotString];
+        var steplog = tileLog[spotString];
         var stepSum = lodash.sum(steplog);
         if(stepSum == 0) {
-            delete room.memory.tileLog[spotString];
+            delete tileLog[spotString];
         }
         else {
             steplog.unshift(0);
@@ -74,10 +79,20 @@ module.exports.processLogs = function(room) {
                 steplog.pop();
             }
             //arbitrarily chosen value slightly lower than the lower breakeven value
-            if(stepSum > 150) {
+            if(room && stepSum > 150) {
                 dropValueRoad(spot, stepSum);
                 
             }
         }
     }
 }
+
+var analytics = {
+    getWalkScore: getWalkScore,
+    logStep: logStep,
+    processLogs: processLogs
+}
+
+profiler.registerObject(analytics, 'analytics');
+
+module.exports = analytics;
