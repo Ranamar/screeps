@@ -65,6 +65,10 @@ var convertTaskToOrder = function(task) {
 
 var assignWorkerJob = function(creep) {
     var tasks = creep.room.memory.tasks;
+    if(!tasks) {
+        //TODO: solution for this sort of thing
+        return null;
+    }
     var task = null;
     //resource return - confuses everything else
     for(let resource in creep.carry) {
