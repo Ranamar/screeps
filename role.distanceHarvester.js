@@ -1,5 +1,5 @@
 var _ = require('lodash')
-var roleUpgrader = require('role.upgrader');
+var analytics = require('analytics');
 
 var roleDistanceHarvester = {
 
@@ -56,11 +56,13 @@ var roleDistanceHarvester = {
     storeAtHome: function(creep) {
         if(creep.room.name != Memory.home) {
             creep.moveTo(Game.rooms[Memory.home].controller);
+            analytics.logStep(creep);
         } else {
             var storage = Game.rooms[Memory.home].storage;
             switch(creep.transfer(storage, RESOURCE_ENERGY)) {
                 case ERR_NOT_IN_RANGE:
                     creep.moveTo(storage);
+                    analytics.logStep(creep);
                     break;
             }
         }
@@ -70,14 +72,15 @@ var roleDistanceHarvester = {
         var destination = creep.memory.destination;
         if(creep.room.name != destination) {
             creep.moveTo(Game.rooms[destination].controller);
+            analytics.logStep(creep);
         } else {
-            // var target = creep.room.controller;
-            // switch(creep.upgradeController(target)) {
-            //     case ERR_NOT_IN_RANGE:
-            //         creep.moveTo(target);
-            //         break;
-            // }
-            roleUpgrader.upgrade(creep);
+            var target = creep.room.controller;
+            switch(creep.upgradeController(target)) {
+                case ERR_NOT_IN_RANGE:
+                    creep.moveTo(target);
+                    analytics.logStep(creep);
+                    break;
+            }
         }
     },
 
