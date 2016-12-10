@@ -53,7 +53,7 @@ profiler.wrap(function() {
         //     var success = Game.spawns['Spawn1'].recycleCreep(creep);
         //     console.log('reclaiming creep', creep.name, creep.ticksToLive, success);
         // }
-        if(creep.memory.role == 'generic') {
+        if(creep.memory.role == 'generic' || creep.memory.role == 'worker') {
             // console.log('generic', creep.name, creep.memory.mode);
             creep.room.memory.genericCount += 1;
             if(!creep.memory.mode || creep.memory.mode == 'unassigned') {
@@ -100,7 +100,7 @@ profiler.wrap(function() {
                 'generic:', spawner.room.memory.genericCount, 'remote:', distanceHarvesterCount, 'in transit:', transitCount);
     
         if(spawner.room.memory.genericCount < MINIMUM_WORKERS) {
-            util.createScalingCreep(spawner, {role:'generic', mode:'unassigned'});
+            util.createScalingCreep(spawner, {role:'worker', mode:'unassigned'});
             console.log('spawning generic worker due to low count');
         }
         // else if(distanceHarvesterCount < 2) {
@@ -120,7 +120,7 @@ profiler.wrap(function() {
             spawner.room.memory.targetWorkerCount += 1/(spawner.room.memory.genericCount*64);
             console.log(spawner, 'target workers increasing to', spawner.room.memory.targetWorkerCount);
             if(spawner.room.memory.targetWorkerCount > spawner.room.memory.genericCount) {
-                util.createScalingCreep(spawner, {role:'generic', mode:'unassigned'});
+                util.createScalingCreep(spawner, {role:'worker', mode:'unassigned'});
                 console.log('spawning generic worker due to high energy');
             }
             else if(distanceHarvesterCount < 2) {

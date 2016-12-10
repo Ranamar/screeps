@@ -4,10 +4,8 @@
 
 var gatherMineral = function(creep, mineral) {
     var result = creep.harvest(mineral);
-    console.log(creep.name, creep.pos, 'mining result', result, 'holding', creep.carry[mineral.mineralType], mineral.mineralType);
     if(result != OK) {
         result = creep.moveTo(mineral);
-        console.log(creep.name, creep.pos, 'moving to mine', result);
     }
 }
 
@@ -26,12 +24,10 @@ var harvestMineral = function(creep) {
         if(creep.memory.storing && !creep.carry[mineral.mineralType]) {
             creep.memory.storing = false;
             creep.say('mining');
-            console.log(creep.name, creep.pos, 'mining');
         }
         if(!creep.memory.storing && creep.carry[mineral.mineralType] == creep.carryCapacity) {
             creep.memory.storing = true;
             creep.say('storing');
-            console.log(creep.name, creep.pos, 'storing mineral');
         }
         if(creep.memory.storing) {
             storeMineral(creep);

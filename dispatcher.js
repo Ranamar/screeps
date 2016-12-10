@@ -40,7 +40,7 @@ var convertTaskToOrder = function(task) {
         };
     }
     else {
-        if(structureNeedsEnergy(task) || task != null && task.structureType == STRUCTURE_STORAGE) {
+        if(task.needsEnergy() || task != null && task.structureType == STRUCTURE_STORAGE) {
             rv = {
                 job: 'store',
                 target: task.id
@@ -142,18 +142,6 @@ var assignWorkerJob = function(creep) {
     return convertTaskToOrder(task);
 }
 
-var structureNeedsEnergy = function(structure) {
-    if(!structure) {
-        console.log('got bad structure', structure);
-        return false;
-    }
-    return (structure.structureType == STRUCTURE_EXTENSION ||
-            structure.structureType == STRUCTURE_SPAWN ||
-            structure.structureType == STRUCTURE_LINK ||
-            structure.structureType == STRUCTURE_TOWER)
-            && structure.energy < structure.energyCapacity;
-}
-
 var findTasks = function(room) {
     var construction = room.find(FIND_CONSTRUCTION_SITES);
     
@@ -179,7 +167,6 @@ var findTasks = function(room) {
 var dispatcher = {
     findTasks: findTasks,
     assignJob: assignWorkerJob,
-    structureNeedsEnergy: structureNeedsEnergy
 };
 profiler.registerObject(dispatcher, 'dispatcher');
 
