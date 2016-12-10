@@ -7,7 +7,26 @@
  * mod.thing == 'a thing'; // true
  */
 
+Creep.prototype.moveToFlag = function() {
+    var target = Game.flags[this.memory.flag];
+    if(this.pos.roomName == target.pos.roomName) {
+        return false;
+    }
+    else {
+        this.moveTo(target);
+        return true;
+    }
+}
+
 module.exports = {
+    dismantle: function(creep) {
+        if(creep.moveToFlag()) {
+            return;
+        }
+        var target = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {filter: (structure) => structure.structureType != STRUCTURE_CONTROLLER});
+        creep.moveTo(target);
+        creep.dismantle(target);
+    },
     doBleed: function(creep) {
         if(!creep.memory.inPosition) {
             var targetPos = Game.rooms['W1N69'].getPositionAt(1, 27);
@@ -78,7 +97,7 @@ module.exports = {
                                                         structure.structureType == STRUCTURE_STORAGE*/)});
                 // var targets = creep.room.find(FIND_HOSTILE_CREEPS);
                 // if(targets.length > 0) {
-                    // creep.moveTo(targets[0]);
+                //     creep.moveTo(targets[0]);
                 // }
                 creep.moveTo(target);
             }
@@ -112,7 +131,33 @@ module.exports = {
             creep.move(LEFT);
         }
     },
-    dismantle: function(creep) {
-        
+    killCreeps: function(creep) {
+        if(creep.moveToFlag()) {
+            return;
+        }
+        var target = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
+        if(creep.pos.isNearTo(target)) {
+            creep.rangedMassAttack();
+        }
+        else {
+            creep.rangedAttack(target);
+            creep.moveTo(target);
+        }
+    },
+    clearWalls: function(creep) {
+        if(creep.pos.roomName != creep.memory.destination) {
+            console.log(creep.name, creep.pos.roomName, creep.memory.destination);
+            creep.moveToNewRoom();
+            return;
+        }
+        let target = creep.pos.findClosestByRange(FIND_STRUCTURES, {filter: {structureType: STRUCTURE_WALL}});
+        if(target) {
+            console.log(creep.name, creep.pos.roomName, 'target', target);
+            creep.moveTo(target);
+            creep.rangedAttack(target);
+        }
+        else {
+            console.log(creep.name, 'no walls in', creep.room.roomName);
+        }
     }
 };

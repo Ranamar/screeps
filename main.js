@@ -3,7 +3,7 @@ var towerFirer = require('structures.towers');
 var dispatcher = require('dispatcher');
 var worker = require('worker.base');
 var maintenance = require('structures.maintenance');
-// var bleeder = require('bleeder');
+var bleeder = require('bleeder');
 var analytics = require('analytics');
 var distanceHarvest = require('role.distanceHarvester');
 // var colonizer = require('role.colonizer');
@@ -67,7 +67,6 @@ profiler.wrap(function() {
         else if(creep.memory.role == 'distanceHarvester') {
             distanceHarvesterCount += 1;
             distanceHarvest.run(creep);
-            // analytics.logStep(creep);
         }
         // else if(creep.memory.role == 'colonize') {
         //     colonizer.run(creep);
@@ -76,15 +75,21 @@ profiler.wrap(function() {
             transitCount += 1;
             creep.moveToNewRoom();
         }
-        else {
-            experimental.runExperimental(creep);
+        else if(creep.memory.role == 'clearWalls') {
+            bleeder.clearWalls(creep);
         }
-        // else if(creep.memory.role == 'thief') {
-        //     roleStorage.stealEnergy(creep);
-        // }
+        else if(creep.memory.role == 'kill') {
+            bleeder.killCreeps(creep);
+        }
+        else if(creep.memory.role == 'dismantle') {
+            bleeder.dismantle(creep);
+        }
         // else if(creep.memory.role == 'scout') {
         //     bleeder.scout(creep);
         // }
+        else {
+            experimental.runExperimental(creep);
+        }
         // console.log('cpu used after creep', name, Game.cpu.getUsed());
     }
     console.log('cpu used this tick (end of unit AI):', Game.cpu.getUsed());
@@ -103,8 +108,8 @@ profiler.wrap(function() {
         //     console.log('Spawning remote harvester');
         // }
         else if(spawner.room.memory.needsMiner) {
-            console.log('spawning miner');
-            Game.spawns.Spawn1.createCreep([WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE], 'Miner', {role:'miner'});
+            console.log(spawner, 'spawning miner');
+            spawner.room.memory.miner = Game.spawns.Spawn1.createCreep([WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE], null, {role:'miner'});
             spawner.room.memory.needsMiner = false;
         }
         if(spawner.room.memory.noEnergy == true && spawner.room.memory.targetWorkerCount > MINIMUM_WORKERS) {
