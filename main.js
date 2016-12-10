@@ -8,8 +8,9 @@ var analytics = require('analytics');
 var distanceHarvest = require('role.distanceHarvester');
 // var colonizer = require('role.colonizer');
 var experimental = require('worker.experimental');
+// var exp_room = require('room.experimental');
 
-var MINIMUM_WORKERS = 6.5;
+var MINIMUM_WORKERS = 5.8;
 var MAXIMUM_WORKERS = 13.5;
 
 var profiler = require('screeps-profiler');
@@ -30,6 +31,8 @@ profiler.wrap(function() {
             dispatcher.findTasks(room);
         }
         towerFirer.fire(roomName);
+        
+        room.checkMiner();
         
         //prep maintenance role counts by room
         room.memory.genericCount = 0;
@@ -99,10 +102,11 @@ profiler.wrap(function() {
         //     util.createScalingCreep(spawner, {role:'distanceHarvester', destination:'W2N68'});
         //     console.log('Spawning remote harvester');
         // }
-        // else if(spawnName == 'Spawn1' && !('Miner' in Memory.creeps)) {
-        //     console.log('spawning miner');
-        //     Game.spawns.Spawn1.createCreep([WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE], 'Miner', {role:'miner'});
-        // }
+        else if(spawner.room.memory.needsMiner) {
+            console.log('spawning miner');
+            Game.spawns.Spawn1.createCreep([WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE], 'Miner', {role:'miner'});
+            spawner.room.memory.needsMiner = false;
+        }
         if(spawner.room.memory.noEnergy == true && spawner.room.memory.targetWorkerCount > MINIMUM_WORKERS) {
             spawner.room.memory.targetWorkerCount -= 0.002;
             console.log(spawner, 'target workers decreasing to', spawner.room.memory.targetWorkerCount);
@@ -114,7 +118,7 @@ profiler.wrap(function() {
                 util.createScalingCreep(spawner, {role:'generic', mode:'unassigned'});
                 console.log('spawning generic worker due to high energy');
             }
-            else if(distanceHarvesterCount < 1) {
+            else if(distanceHarvesterCount < 2) {
                 util.createScalingCreep(spawner, {role:'distanceHarvester', destination:'W2N68'});
                 console.log('Spawning remote harvester');
             }
