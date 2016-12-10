@@ -95,7 +95,7 @@ Creep.prototype.findJob = function() {
     this.assignJob(job);
 }
 
-Creep.prototype.workerMove = function() {
+Creep.prototype.work = function() {
     var target = Game.getObjectById(this.memory.target);
     //Try operation
     var result = this.modeOperation(target);

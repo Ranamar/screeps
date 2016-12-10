@@ -6,6 +6,7 @@ var maintenance = require('structures.maintenance');
 var bleeder = require('bleeder');
 var analytics = require('analytics');
 var distanceHarvest = require('role.distanceHarvester');
+var miner = require('miner');
 // var colonizer = require('role.colonizer');
 var experimental = require('worker.experimental');
 // var exp_room = require('room.experimental');
@@ -53,43 +54,33 @@ profiler.wrap(function() {
         //     var success = Game.spawns['Spawn1'].recycleCreep(creep);
         //     console.log('reclaiming creep', creep.name, creep.ticksToLive, success);
         // }
-        if(creep.memory.role == 'generic' || creep.memory.role == 'worker') {
-            // console.log('generic', creep.name, creep.memory.mode);
-            creep.room.memory.genericCount += 1;
-            if(!creep.memory.mode || creep.memory.mode == 'unassigned') {
-                var job = dispatcher.assignJob(creep);
-                // console.log(creep.name, 'unassigned; finding job:', job.job);
-                creep.assignJob(job);
-            }
-            // console.log('generic', creep.name, creep.memory.mode, creep.memory.target);
-            creep.workerMove();
+        
+        switch(creep.memory.role) {
+            case 'generic':
+            case 'worker':
+                creep.room.memory.genericCount += 1;
+                if(!creep.memory.mode || creep.memory.mode == 'unassigned') {
+                    var job = dispatcher.assignJob(creep);
+                    creep.assignJob(job);
+                }
+                creep.work();
+                break;
+            case 'distanceHarvester':
+                distanceHarvesterCount += 1;
+                distanceHarvest.run(creep);
+                break;
+            case 'miner':
+                creep.mine();
+                break;
+            case 'transit':
+                transitCount += 1;
+                creep.moveToNewRoom();
+                break;
+            default:
+                experimental.runExperimental(creep);
+                break;
         }
-        else if(creep.memory.role == 'distanceHarvester') {
-            distanceHarvesterCount += 1;
-            distanceHarvest.run(creep);
-        }
-        // else if(creep.memory.role == 'colonize') {
-        //     colonizer.run(creep);
-        // }
-        else if(creep.memory.role == 'transit') {
-            transitCount += 1;
-            creep.moveToNewRoom();
-        }
-        else if(creep.memory.role == 'clearWalls') {
-            bleeder.clearWalls(creep);
-        }
-        else if(creep.memory.role == 'kill') {
-            bleeder.killCreeps(creep);
-        }
-        else if(creep.memory.role == 'dismantle') {
-            bleeder.dismantle(creep);
-        }
-        // else if(creep.memory.role == 'scout') {
-        //     bleeder.scout(creep);
-        // }
-        else {
-            experimental.runExperimental(creep);
-        }
+        
         // console.log('cpu used after creep', name, Game.cpu.getUsed());
     }
     console.log('cpu used this tick (end of unit AI):', Game.cpu.getUsed());
@@ -123,7 +114,7 @@ profiler.wrap(function() {
                 util.createScalingCreep(spawner, {role:'worker', mode:'unassigned'});
                 console.log('spawning generic worker due to high energy');
             }
-            else if(distanceHarvesterCount < 2) {
+            else if(distanceHarvesterCount < 3) {
                 util.createScalingCreep(spawner, {role:'distanceHarvester', destination:'W2N68'});
                 console.log('Spawning remote harvester');
             }
