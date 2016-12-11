@@ -15,14 +15,6 @@ var WALL_TARGET_STRENGTH = 25000;
 //     return (this.hits < this.hitsMax*percentDamaged) && (this.hits < maxHits) && dynamicScore;
 // };
 
-Structure.prototype.needsEnergy = function() {
-    return (this.structureType == STRUCTURE_EXTENSION ||
-            this.structureType == STRUCTURE_SPAWN ||
-            this.structureType == STRUCTURE_LINK ||
-            this.structureType == STRUCTURE_TOWER)
-            && this.energy < this.energyCapacity;
-}
-
 Structure.prototype.needsRepairs = function() {
     return (this.hits < this.hitsMax*0.5) && (this.hits < WALL_TARGET_STRENGTH);
 };

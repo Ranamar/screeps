@@ -3,6 +3,7 @@ var towerFirer = require('structure.tower');
 var dispatcher = require('dispatcher');
 var worker = require('worker.base');
 var maintenance = require('structure.maintenance');
+var energy = require('structure.energy');
 var bleeder = require('bleeder');
 var analytics = require('analytics');
 var distanceHarvest = require('role.distanceHarvester');
