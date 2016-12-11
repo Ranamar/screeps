@@ -61,8 +61,7 @@ var roleDistanceHarvester = {
             var storage = Game.rooms[Memory.home].storage;
             switch(creep.transfer(storage, RESOURCE_ENERGY)) {
                 case ERR_NOT_IN_RANGE:
-                    creep.moveTo(storage);
-                    analytics.logStep(creep);
+                    creep.loggedMove(storage);
                     break;
             }
         }
@@ -77,8 +76,7 @@ var roleDistanceHarvester = {
             var target = creep.room.controller;
             switch(creep.upgradeController(target)) {
                 case ERR_NOT_IN_RANGE:
-                    creep.moveTo(target);
-                    analytics.logStep(creep);
+                    creep.loggedMove(target);
                     break;
             }
         }

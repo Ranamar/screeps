@@ -113,9 +113,7 @@ Creep.prototype.work = function() {
     }
     //move if out of range
     if(result == ERR_NOT_IN_RANGE) {
-        this.moveTo(target);
-        //Log movement here, because this is the only time roads decay
-        analytics.logStep(this);
+        this.loggedMove(target);
     }
     //Handle other error cases
     //Try operation again
@@ -164,6 +162,6 @@ Creep.prototype.moveToNewRoom = function() {
     }
     else {
         var target = Game.rooms[this.memory.destination].controller;
-        this.moveTo(target);
+        this.loggedMove(target);
     }
 }

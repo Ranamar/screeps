@@ -34,6 +34,14 @@ var logStep = function(creep) {
 }
 profiler.registerFN(logStep, "analytics.logStep");
 
+Creep.prototype.loggedMove = function(dest) {
+    let result = this.moveTo(dest);
+    if(result == OK) {
+        //Log movement here, because this is the only time roads decay
+        logStep(this);
+    }
+}
+
 //(roadCost/delay) <= (roadLife/sampleWindow)*(partCost/creepLife)*partsSampled
 //roadLife=50,000; sampleWindow=1,000; creepLife=1,500; partCost assumed to be 50
 //partsSampled >= (roadCost/delay)*(sampleWindow/roadLife)*(creepLife/partCost)
