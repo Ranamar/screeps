@@ -8,12 +8,11 @@ Structure.prototype.needsEnergy = function() {
 
 //XXX magic numbers
 StructureLink.prototype.pullEnergy = function() {
-    console.log(this, 'pulling energy', this.energy);
     if(this.energy > 400) {
         return;
     }
     let links = this.room.find(FIND_STRUCTURES, {filter: (structure) => structure.structureType == STRUCTURE_LINK});
-    for(let i = 0; i < links; i++) {
+    for(let i = 0; i < links.length; i++) {
         let link = links[i];
         if(link.energy > 400) {
             let result = link.transferEnergy(this, 400);
