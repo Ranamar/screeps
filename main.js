@@ -1,8 +1,8 @@
 var util = require('util');
-var towerFirer = require('structures.towers');
+var towerFirer = require('structure.tower');
 var dispatcher = require('dispatcher');
 var worker = require('worker.base');
-var maintenance = require('structures.maintenance');
+var maintenance = require('structure.maintenance');
 var bleeder = require('bleeder');
 var analytics = require('analytics');
 var distanceHarvest = require('role.distanceHarvester');
@@ -94,13 +94,9 @@ profiler.wrap(function() {
             util.createScalingCreep(spawner, {role:'worker', mode:'unassigned'});
             console.log('spawning generic worker due to low count');
         }
-        // else if(distanceHarvesterCount < 2) {
-        //     util.createScalingCreep(spawner, {role:'distanceHarvester', destination:'W2N68'});
-        //     console.log('Spawning remote harvester');
-        // }
         else if(spawner.room.memory.needsMiner) {
             console.log(spawner, 'spawning miner');
-            spawner.room.memory.miner = Game.spawns.Spawn1.createCreep([WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE], null, {role:'miner'});
+            spawner.room.memory.miner = spawner.createCreep([WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE], null, {role:'miner'});
             spawner.room.memory.needsMiner = false;
         }
         if(spawner.room.memory.noEnergy == true && spawner.room.memory.targetWorkerCount > MINIMUM_WORKERS) {
