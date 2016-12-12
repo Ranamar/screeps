@@ -113,10 +113,10 @@ profiler.wrap(function() {
                 spawner.createSymmetricalWorker({role:'distanceHarvester', destination:'W2N68'});
                 console.log('Spawning remote harvester');
             }
-            // else {
-            //     spawner.createSymmetricalWorker({role:'transit', destination: 'W3N69', destRole:'worker'});
-            //     console.log('spawning worker for export');
-            // }
+            else {
+                spawner.createSymmetricalWorker({role:'transit', destination: 'W3N69', destRole:'worker'});
+                console.log('spawning worker for export');
+            }
         }
     }
     

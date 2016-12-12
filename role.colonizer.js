@@ -15,13 +15,8 @@ module.exports = {
         }
         else {
             var target = creep.room.controller;
+            creep.moveTo(target);
             var result = creep.claimController(target);
-            if(result == ERR_NOT_IN_RANGE) {
-                creep.moveTo(target);
-            }
-            else {
-                console.log("*** Claim went wrong", creep.name, creep.pos, result);
-            }
         }
     }
 }
