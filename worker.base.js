@@ -1,11 +1,7 @@
-// var builder = require('role.builder');
-// var store = require('role.store');
-// var upgrader = require('role.upgrader');
-
 var harvester = require('worker.harvest');
 var resource = require('worker.resources');
 var maintenance = require('structures.maintenance');
-var structures = require('worker.structures');
+var upgrading = require('worker.upgrade');
 
 var analytics = require('analytics');
 var dispatcher = require('dispatcher');
@@ -49,8 +45,6 @@ Creep.prototype.modeOperation = function(target) {
         case 'storeall':
             return this.storeAny(target);
         case 'upgrade':
-            // console.log(this.name, 'upgrading', this.room.controller, this.memory.target);
-            // this.registerUpgrading();
             return this.upgradeController(this.room.controller);
             break;
         case 'repair':

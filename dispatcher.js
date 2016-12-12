@@ -124,13 +124,12 @@ var assignWorkerJob = function(creep) {
         if(tasks.needEnergy.length > 0 /*&& Math.random() < 0.3*/) {
             task = tasks.needEnergy.shift();
         }
-        // else if(Math.random() < 0.1) {
-        //     task = creep.room.storage;
-        // }
-        // else {
+        else if(Math.random() < 0.1) {
+            task = creep.room.storage;
+        }
+        else {
             task = 'upgrade';
-        // }
-        // console.log('Selected fallback task', task);
+        }
     }
     if(!task) {
         console.log('***', creep.name, creep.pos, 'did not get a task. Energy:', creep.carry.energy);
@@ -140,6 +139,17 @@ var assignWorkerJob = function(creep) {
         console.log('building?', tasks.needBuilding.length);
     }
     return convertTaskToOrder(task);
+}
+profiler.registerFN(assignWorkerJob, 'dispatcher.assignWorkerJob');
+
+var assignJob = function(creep) {
+    switch(creep.memory.role) {
+        case 'generic':
+        case 'worker':
+            return assignWorkerJob(creep);
+        default:
+            return null;
+    }
 }
 
 var findTasks = function(room) {
@@ -166,7 +176,7 @@ var findTasks = function(room) {
 
 var dispatcher = {
     findTasks: findTasks,
-    assignJob: assignWorkerJob,
+    assignJob: assignJob,
 };
 profiler.registerObject(dispatcher, 'dispatcher');
 
