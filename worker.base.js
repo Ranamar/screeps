@@ -3,8 +3,18 @@ var resource = require('worker.resources');
 var maintenance = require('structures.maintenance');
 var upgrading = require('worker.upgrade');
 
+var experimental = require('worker.experimental');
+
 var analytics = require('analytics');
 var dispatcher = require('dispatcher');
+
+Creep.prototype.workerInit = function() {
+    switch(this.role) {
+        default:
+            experimental.initExperimental(this);
+            break;
+    }
+}
 
 Creep.prototype.assignJob = function(job) {
     // console.log(this.name, 'assigning job', job.job, job.target);
