@@ -95,7 +95,7 @@ var assignWorkerJob = function(creep) {
         task = 'harvest';
     }
     //If nobody is upgrading, this is urgent.
-    else if(creep.room.memory.upgraders.length == 0) {
+    else if(!creep.room.memory.upgraders || creep.room.memory.upgraders.length == 0) {
         task = 'upgrade';
         // return {
         //     job: 'upgrade',

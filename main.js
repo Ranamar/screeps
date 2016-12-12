@@ -110,10 +110,12 @@ profiler.wrap(function() {
                 console.log('spawning generic worker due to high energy');
             }
             else if(distanceHarvesterCount < 2) {
+                //These tend to truck stuff far enough that the extra capacity relative to work modules is worth it.
                 spawner.createSymmetricalWorker({role:'distanceHarvester', destination:'W2N68'});
                 console.log('Spawning remote harvester');
             }
             else {
+                //We expect these to be going off-road, so symmetrical is a lot better than the alternative.
                 spawner.createSymmetricalWorker({role:'transit', destination: 'W3N69', destRole:'worker'});
                 console.log('spawning worker for export');
             }

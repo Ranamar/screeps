@@ -1,6 +1,13 @@
 var lodash = require('lodash');
 
 Creep.prototype.selectSource = function() {
+    if(!this.room.memory.energySources) {
+        this.room.memory.energySources = this.room.find(FIND_SOURCES);
+        for(let i = 0; i < this.room.memory.energySources.length; i++) {
+            this.room.memory.energySources[i].miners = [];
+            delete this.room.memory.energySources[i].room;
+        }
+    }
     var sources = this.room.memory.energySources;
     if(this.memory.target == undefined) {
         var leastIndex = 0;
