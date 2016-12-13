@@ -1,13 +1,8 @@
-var _ = require('lodash')
 var analytics = require('analytics');
 
 var roleDistanceHarvester = {
 
     run: function(creep) {
-
-        var flags = [
-            'distanceHarvestA'
-        ];
 
         // maybe do some roadwork
         if(creep.memory.harvesting == false && creep.carry.energy > 0) {
@@ -22,30 +17,33 @@ var roleDistanceHarvester = {
         // initialize a new creep correctly
         if(creep.memory.harvesting == undefined || creep.memory.target == undefined) {
             creep.memory.harvesting = false;
+            delete creep.memory.target;
         }
 
         // done harvesting because we dropped at storage, so get a new random target room
         if(creep.carry.energy == 0 && creep.memory.harvesting == false) {
             creep.memory.harvesting = true;
-            creep.memory.target = _.shuffle(flags)[0];
         }
-
+        
         // done harvesting, so go home and dump in storage (doing roadwork along the way as per above)
         if(creep.carry.energy == creep.carryCapacity) {
-
             creep.memory.harvesting = false;
+            creep.unregisterGathering();
             roleDistanceHarvester.upgradeAtDestination(creep);
             // roleDistanceHarvester.storeAtHome(creep);
 
         // go to the target room, then find an energy in it and nom away
         } else if(creep.memory.harvesting) {
-            if(creep.room.name != Game.flags[creep.memory.target].pos.roomName) {
-                creep.moveTo(Game.flags[creep.memory.target]);
+            if(creep.room.name != Game.flags[creep.memory.flag].pos.roomName) {
+                creep.moveTo(Game.flags[creep.memory.flag]);
             } else {
-               var target = creep.pos.findClosestByPath(FIND_SOURCES);
-               if(creep.harvest(target)) {
-                 creep.moveTo(target);
-               }
+                if(!creep.memory.target) {
+                    creep.selectSource();
+                }
+                let target = Game.getObjectById(creep.memory.target);
+                if(creep.gatherEnergy(target) != OK) {
+                    creep.moveTo(target);
+                }
             }
         } else {
             // default to going home

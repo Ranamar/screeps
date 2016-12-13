@@ -39,6 +39,7 @@ profiler.wrap(function() {
         
         //prep maintenance role counts by room
         room.memory.genericCount = 0;
+        room.memory.upgraderCount = 0;
     }
     var distanceHarvesterCount = 0;
     console.log('cpu used this tick after dispatcher and tower firing:', Game.cpu.getUsed());
@@ -76,6 +77,7 @@ profiler.wrap(function() {
                 colonizer.run(creep);
                 break;
             default:
+                creep.room.memory.upgraderCount += 1;
                 experimental.runExperimental(creep);
                 break;
         }
@@ -87,7 +89,7 @@ profiler.wrap(function() {
     for(var spawnName in Game.spawns) {
         var spawner = Game.spawns[spawnName];
         console.log(spawner.room,
-                'generic:', spawner.room.memory.genericCount, 'remote:', distanceHarvesterCount, 'in transit:', transitCount);
+                'generic:', spawner.room.memory.genericCount, 'upgrader', spawner.room.memory.upgraderCount, 'remote:', distanceHarvesterCount, 'in transit:', transitCount);
     
         if(spawner.room.memory.genericCount < MINIMUM_WORKERS) {
             spawner.createScaledWorker({role:'worker', mode:'unassigned'});
@@ -109,16 +111,19 @@ profiler.wrap(function() {
                 spawner.createScaledWorker({role:'worker', mode:'unassigned'});
                 console.log('spawning generic worker due to high energy');
             }
-            else if(distanceHarvesterCount < 2) {
+            else if(distanceHarvesterCount < 5) {
                 //These tend to truck stuff far enough that the extra capacity relative to work modules is worth it.
-                spawner.createSymmetricalWorker({role:'distanceHarvester', destination:'W2N68'});
+                spawner.createSymmetricalWorker({role:'distanceHarvester', flag:'distanceHarvestB', destination:'W3N69'});
                 console.log('Spawning remote harvester');
             }
-            else {
-                //We expect these to be going off-road, so symmetrical is a lot better than the alternative.
-                spawner.createSymmetricalWorker({role:'transit', destination: 'W3N69', destRole:'worker'});
-                console.log('spawning worker for export');
+            else if(spawner.room.memory.upgraderCount == 0 && spawner.room.controller.level > 5) {
+                spawner.createDedicatedUpgrader({role:'upgrader', mode:'upgrader'});
             }
+            // else if(Math.random() < 0.1) {
+            //     //We expect these to be going off-road, so symmetrical is a lot better than the alternative.
+            //     spawner.createSymmetricalWorker({role:'transit', destination: 'W3N69', destRole:'worker'});
+            //     console.log('spawning worker for export');
+            // }
         }
     }
     
