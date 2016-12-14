@@ -42,12 +42,19 @@ Creep.prototype.loggedMove = function(dest) {
     }
 }
 
-//(roadCost/delay) <= (roadLife/sampleWindow)*(partCost/creepLife)*partsSampled
-//roadLife=50,000; sampleWindow=1,000; creepLife=1,500; partCost assumed to be 50
-//partsSampled >= (roadCost/delay)*(sampleWindow/roadLife)*(creepLife/partCost)
-var roadMinScoreLookup = {
-    'swamp': (1500*3)/(4*5),
-    'plain': (300*3)/(5)
+const road_cost = 300;
+const sample_span = 250;
+const sample_count = 4;
+const road_life = 50000;
+const creep_life = 1500;
+const part_cost = 50;
+
+//roadCost <= (road_life/sample_window)*(part_cost/creep_life)*parts_sampled*delay
+//to be worth it, we need:
+//partsSampled >= (road_cost/delay)*(sample_window/road_life)*(creep_life/part_cost)
+const roadMinScoreLookup = {
+    'swamp': (road_cost*5/4)*(sample_span*sample_count/road_life)*(creep_life/part_cost),
+    'plain': (road_cost)*(sample_span*sample_count/road_life)*(creep_life/part_cost)
 };
 function dropValueRoad(spot, tileScore) {
     var ticksOnLand;
@@ -83,7 +90,7 @@ var processLogs = function(roomName) {
         }
         else {
             steplog.unshift(0);
-            if(steplog.length > 4) {
+            if(steplog.length > sample_count) {
                 steplog.pop();
             }
             //arbitrarily chosen value slightly lower than the lower breakeven value
@@ -98,7 +105,9 @@ var processLogs = function(roomName) {
 var analytics = {
     getWalkScore: getWalkScore,
     logStep: logStep,
-    processLogs: processLogs
+    processLogs: processLogs,
+    sampleSpan: sample_span,
+    sampleCount: sample_count
 }
 
 profiler.registerObject(analytics, 'analytics');

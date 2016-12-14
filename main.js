@@ -139,7 +139,7 @@ profiler.wrap(function() {
     Memory.counter = Memory.counter + 1;
     console.log('log processing counter:', Memory.counter);
     
-    if(Memory.counter >= 250) {
+    if(Memory.counter >= analytics.sampleSpan) {
         Memory.counter = 0;
         for(roomName in Memory.rooms) {
             analytics.processLogs(roomName);
