@@ -90,7 +90,8 @@ profiler.wrap(function() {
         var spawner = Game.spawns[spawnName];
         console.log(spawner.room,
                 'generic:', spawner.room.memory.genericCount, 'upgrader', spawner.room.memory.upgraderCount, 'remote:', distanceHarvesterCount, 'in transit:', transitCount);
-    
+        // console.log(spawner.room, 'energy', spawner.room.energyAvailable, 'of', spawner.room.energyCapacityAvailable);
+        
         if(spawner.room.memory.genericCount < MINIMUM_WORKERS) {
             spawner.createScaledWorker({role:'worker', mode:'unassigned'});
             console.log('spawning generic worker due to low count');
@@ -104,9 +105,12 @@ profiler.wrap(function() {
             spawner.room.memory.targetWorkerCount -= 0.002;
             console.log(spawner, 'target workers decreasing to', spawner.room.memory.targetWorkerCount);
         }
-        else if(spawner.room.energyAvailable == spawner.room.energyCapacityAvailable && spawner.room.memory.targetWorkerCount < MAXIMUM_WORKERS) {
-            spawner.room.memory.targetWorkerCount += 1/(spawner.room.memory.genericCount*64);
-            console.log(spawner, 'target workers increasing to', spawner.room.memory.targetWorkerCount);
+        else if(spawner.room.energyAvailable == spawner.room.energyCapacityAvailable) {
+            if(spawner.room.memory.targetWorkerCount < MAXIMUM_WORKERS) {
+                spawner.room.memory.targetWorkerCount += 1/(spawner.room.memory.genericCount*64);
+                console.log(spawner, 'target workers increasing to', spawner.room.memory.targetWorkerCount);
+            }
+            
             if(spawner.room.memory.targetWorkerCount > spawner.room.memory.genericCount) {
                 spawner.createScaledWorker({role:'worker', mode:'unassigned'});
                 console.log('spawning generic worker due to high energy');

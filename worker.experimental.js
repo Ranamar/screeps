@@ -8,7 +8,7 @@ var dedicatedUpgrader = function(creep) {
     if(creep.carry.energy < 15) {
         // let target = creep.pos.findClosestByRange(FIND_STRUCTURES, {filter: (structure) => (structure.structureType === STRUCTURE_LINK)});
         let target = Game.getObjectById(creep.memory.link);
-        if(target.energy < 100) {
+        if(target.energy < 400) {
             console.log(creep.name, 'forcing energy pull for', target);
             target.pullEnergy();
         }
