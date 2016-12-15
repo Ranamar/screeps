@@ -95,7 +95,8 @@ var roleDistanceHarvester = {
         else if(roads.length != 0) {
             var road = roads[0];
             // there is a road here, maybe repair it
-            if(road.hits / road.hitsMax < .8) {
+            // if(road.hits / road.hitsMax < .8) {
+            if(road.needsRepairs()) {
                 creep.repair(road);
             }
         }

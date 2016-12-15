@@ -6,12 +6,13 @@ StructureTower.prototype.autoFire = function() {
     else {
         let repairTargets = [];
         //The only reason we can afford to do this often is because we cache out the results of the find() call at the start of the tick.
-        if(this.room.memory.tasks && this.room.memory.tasks.needRepairs) {
+        if(this.room.memory.tasks && this.room.memory.tasks.needMaintenance) {
             //This has already been filtered by the dispatcher.
-            repairTargets = this.pos.findInRange(this.room.memory.tasks.needRepairs, 10);
+            repairTargets = this.pos.findInRange(this.room.memory.tasks.needMaintenance, 10);
+            // console.log(this.pos, repairTargets, repairTargets[0]);
         }
         else {
-            repairTargets = this.pos.findInRange(FIND_STRUCTURES, 10, { filter: (structure) => structure.needsRepairs() });
+            repairTargets = this.pos.findInRange(FIND_STRUCTURES, 10, { filter: (structure) => structure.needsMaintenance() });
         }
         if (repairTargets[0] != undefined) {
             this.repair(repairTargets[0]);

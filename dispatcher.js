@@ -46,7 +46,7 @@ var convertTaskToOrder = function(task) {
                 target: task.id
             };
         }
-        else if((task instanceof Structure) && task.needsMaintenance()) {
+        else if((task instanceof Structure) && task.needsRepairs()) {
             rv = {
                 job: 'repair',
                 target: task.id
@@ -159,7 +159,7 @@ var findTasks = function(room) {
 
     var needMaintenance = room.find(FIND_STRUCTURES, {filter: (structure) => structure.needsMaintenance()});
 
-    var needRepairs = lodash.filter(needMaintenance, (structure) => structure.needsRepairs());
+    var needRepairs =  room.find(FIND_STRUCTURES, {filter: (structure) => structure.needsRepairs()});
 
     var droppedEnergy = room.find(FIND_DROPPED_RESOURCES);
 
