@@ -17,6 +17,12 @@ StructureTower.prototype.autoFire = function() {
             this.repair(repairTargets[0]);
         }
         //XXX else heal? costs energy, though I suppose spawning a healer does too.
+        else {
+            let healTarget = this.pos.findClosestByRange(FIND_MY_CREEPS, {filter: (creep) => creep.hits < creep.hitsMax});
+            if(healTarget) {
+                this.heal(healTarget);
+            }
+        }
     }
 };
     
