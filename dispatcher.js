@@ -134,7 +134,6 @@ var assignWorkerJob = function(creep) {
     if(!task) {
         console.log('***', creep.name, creep.pos, 'did not get a task. Energy:', creep.carry.energy);
         console.log('room energy full?', creep.room.energyCapacityAvailable, creep.room.energyCapacityAvailable,  creep.room.energyAvailable);
-        console.log('specific receptacles', tasks.needEnergy.length, Game.spawns['Spawn1'].energy);
         console.log('repairs?', tasks.needRepairs, tasks.needRepairs.length);
         console.log('building?', tasks.needBuilding.length);
     }

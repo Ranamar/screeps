@@ -1,3 +1,5 @@
+var profiler = require('screeps-profiler');
+
 StructureTower.prototype.autoFire = function() {
     let target = this.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
     if(target != undefined) {
@@ -36,5 +38,6 @@ var towerFirer = {
         }
     }
 }
+profiler.registerObject(towerFirer, 'tower');
 
 module.exports = towerFirer;

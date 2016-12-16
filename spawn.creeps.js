@@ -10,6 +10,11 @@ StructureSpawn.prototype.createScaledWorker = function(settings) {
     if(energy >= 600) {
         largest = largest.concat([WORK, CARRY, MOVE]);
     }
+    //If we've got less than 850 energy, this beats 5/2/4.
+    //RCL 3 gets us exactly 800 energy at the top end, so check for that case.
+    if(energy == 800) {
+        largest = largest.concat([WORK, CARRY, MOVE]);
+    }
     if(energy >= 850) {
         largest = largest.concat([WORK, WORK, MOVE]);
     }

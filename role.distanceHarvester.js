@@ -30,7 +30,6 @@ var roleDistanceHarvester = {
             creep.memory.harvesting = false;
             creep.unregisterGathering();
             roleDistanceHarvester.upgradeAtDestination(creep);
-            // roleDistanceHarvester.storeAtHome(creep);
 
         // go to the target room, then find an energy in it and nom away
         } else if(creep.memory.harvesting) {
@@ -41,8 +40,14 @@ var roleDistanceHarvester = {
                     creep.selectSource();
                 }
                 let target = Game.getObjectById(creep.memory.target);
-                if(creep.gatherEnergy(target) != OK) {
+                let result = creep.gatherEnergy(target);
+                if(result == ERR_NOT_IN_RANGE) {
                     creep.moveTo(target);
+                }
+                else if(result == ERR_NOT_ENOUGH_RESOURCES && creep.carry.energy > 20) {
+                    creep.memory.harvesting = false;
+                    creep.unregisterGathering();
+                    roleDistanceHarvester.upgradeAtDestination(creep);
                 }
             }
         } else {

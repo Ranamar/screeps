@@ -13,8 +13,8 @@ var colonizer = require('role.colonizer');
 var experimental = require('worker.experimental');
 // var exp_room = require('room.experimental');
 
-var MINIMUM_WORKERS = 5.5;
-var MAXIMUM_WORKERS = 13.5;
+var MINIMUM_WORKERS = 4.8;
+var MAXIMUM_WORKERS = 11.5;
 
 var profiler = require('screeps-profiler');
 profiler.enable();
@@ -115,12 +115,12 @@ profiler.wrap(function() {
                 spawner.createScaledWorker({role:'worker', mode:'unassigned'});
                 console.log('spawning generic worker due to high energy');
             }
-            else if(distanceHarvesterCount < 5) {
+            else if(distanceHarvesterCount < 3) {
                 //These tend to truck stuff far enough that the extra capacity relative to work modules is worth it.
                 spawner.createSymmetricalWorker({role:'distanceHarvester', flag:'distanceHarvestB', destination:'W3N69'});
                 console.log('Spawning remote harvester');
             }
-            else if(spawner.room.memory.upgraderCount == 0 && spawner.room.controller.level > 5) {
+            else if(spawner.room.memory.upgraderCount == 0 && spawner.room.controller.level >= 5) {
                 spawner.createDedicatedUpgrader({role:'upgrader', mode:'upgrader'});
             }
             // else if(Math.random() < 0.1) {
