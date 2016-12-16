@@ -14,8 +14,22 @@ var profiler = require('screeps-profiler');
 var getWalkScore = function(pos) {
     var stringKey = JSON.stringify(pos);
     var steplog = Game.rooms[pos.roomName].memory.tileLog[stringKey];
-    return lodash.sum(steplog);
+    if(Array.isArray(steplog)) {
+        let steps = lodash.sum(steplog);
+        let replacement = {
+            log: steplog,
+            stepSum: steps
+        };
+        Game.rooms[pos.roomName].memory.tileLog[stringKey] = replacement;
+    }
+    if(steplog) {
+        return steplog.stepSum;
+    }
+    else {
+        return 0;
+    }
 }
+profiler.registerFN(getWalkScore, "analytics.getWalkScore");
 
 var logStep = function(creep) {
     //We serialize the position even though the result is a little bigger so it's easy to get out but still a sparse array.
@@ -27,9 +41,21 @@ var logStep = function(creep) {
     if(Array.isArray(steplog)) {
         steplog[0] = steplog[0] + creep.body.length;
     }
+    else if(steplog) {
+        steplog.log[0] = steplog.log[0] + creep.body.length;
+    }
+    else if(!steplog) {
+        console.log('creating new log for', creep.pos);
+        // var newStepLog = [creep.body.length];
+        // creep.room.memory.tileLog[stringKey] = newStepLog;
+        let newLog = {
+            log: [creep.body.length],
+            stepSum: 0
+        };
+        creep.room.memory.tileLog[stringKey] = newLog;
+    }
     else {
-        var newStepLog = [creep.body.length];
-        creep.room.memory.tileLog[stringKey] = newStepLog;
+        console.log('Step log for', creep.pos, 'is neither array nor object nor undefined');
     }
 }
 profiler.registerFN(logStep, "analytics.logStep");
@@ -44,7 +70,7 @@ Creep.prototype.loggedMove = function(dest) {
 
 const road_cost = 300;
 const sample_span = 250;
-const sample_count = 4;
+const sample_count = 6;
 const road_life = 50000;
 const creep_life = 1500;
 const part_cost = 50;
@@ -69,29 +95,49 @@ function dropValueRoad(spot, tileScore) {
         room.createConstructionSite(spot, STRUCTURE_ROAD);
     }
 }
+profiler.registerFN(dropValueRoad, "analytics.dropValueRoad");
 
 var processLogs = function(roomName) {
-    var roomMemory = Memory.rooms[roomName];
+    let roomMemory = Memory.rooms[roomName];
     if(!('tileLog' in roomMemory))
         return;
     console.log('processing step logs', roomName);
-    var tileLog = roomMemory.tileLog;
-    var room = Game.rooms[roomName];
+    let tileLog = roomMemory.tileLog;
+    let room = Game.rooms[roomName];
     for(spotString in tileLog) {
         //deserialize our position
-        var deserialized = JSON.parse(spotString);
-        var spot = new RoomPosition(deserialized.x, deserialized.y, deserialized.roomName);
+        let deserialized = JSON.parse(spotString);
+        let spot = new RoomPosition(deserialized.x, deserialized.y, deserialized.roomName);
         
         //calculate parts per 1000 ticks to prune array
-        var steplog = tileLog[spotString];
-        var stepSum = lodash.sum(steplog);
+        let steplog = tileLog[spotString];
+        let stepSum = 0;
+        if(Array.isArray(steplog)) {
+            stepSum = lodash.sum(steplog);
+        }
+        else {
+            stepSum = lodash.sum(steplog.log);
+            steplog.stepSum = stepSum;
+            if(steplog.stepsum) {
+                delete steplog.stepsum;
+            }
+        }
+        
         if(stepSum == 0) {
             delete tileLog[spotString];
         }
         else {
-            steplog.unshift(0);
-            if(steplog.length > sample_count) {
-                steplog.pop();
+            if(Array.isArray(steplog)) {
+                steplog.unshift(0);
+                if(steplog.length > sample_count) {
+                    steplog.pop();
+                }
+            }
+            else {
+                steplog.log.unshift(0);
+                if(steplog.log.length > sample_count) {
+                    steplog.log.pop();
+                }
             }
             //arbitrarily chosen value slightly lower than the lower breakeven value
             if(room && stepSum > 150) {
@@ -101,6 +147,7 @@ var processLogs = function(roomName) {
         }
     }
 }
+profiler.registerFN(processLogs, "analytics.processLogs");
 
 var analytics = {
     getWalkScore: getWalkScore,
@@ -110,6 +157,6 @@ var analytics = {
     sampleCount: sample_count
 }
 
-profiler.registerObject(analytics, 'analytics');
+// profiler.registerObject(analytics, 'analytics');
 
 module.exports = analytics;
