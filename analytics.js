@@ -38,24 +38,16 @@ var logStep = function(creep) {
         creep.room.memory.tileLog = {};
     }
     var steplog = creep.room.memory.tileLog[stringKey];
-    if(Array.isArray(steplog)) {
-        steplog[0] = steplog[0] + creep.body.length;
-    }
-    else if(steplog) {
+    if(steplog) {
         steplog.log[0] = steplog.log[0] + creep.body.length;
     }
-    else if(!steplog) {
+    else {
         console.log('creating new log for', creep.pos);
-        // var newStepLog = [creep.body.length];
-        // creep.room.memory.tileLog[stringKey] = newStepLog;
         let newLog = {
             log: [creep.body.length],
             stepSum: 0
         };
         creep.room.memory.tileLog[stringKey] = newLog;
-    }
-    else {
-        console.log('Step log for', creep.pos, 'is neither array nor object nor undefined');
     }
 }
 profiler.registerFN(logStep, "analytics.logStep");
@@ -112,32 +104,19 @@ var processLogs = function(roomName) {
         //calculate parts per 1000 ticks to prune array
         let steplog = tileLog[spotString];
         let stepSum = 0;
-        if(Array.isArray(steplog)) {
-            stepSum = lodash.sum(steplog);
+        stepSum = lodash.sum(steplog.log);
+        steplog.stepSum = stepSum;
+        if(steplog.stepsum) {
+            delete steplog.stepsum;
         }
-        else {
-            stepSum = lodash.sum(steplog.log);
-            steplog.stepSum = stepSum;
-            if(steplog.stepsum) {
-                delete steplog.stepsum;
-            }
-        }
-        
+
         if(stepSum == 0) {
             delete tileLog[spotString];
         }
         else {
-            if(Array.isArray(steplog)) {
-                steplog.unshift(0);
-                if(steplog.length > sample_count) {
-                    steplog.pop();
-                }
-            }
-            else {
-                steplog.log.unshift(0);
-                if(steplog.log.length > sample_count) {
-                    steplog.log.pop();
-                }
+            steplog.log.unshift(0);
+            if(steplog.log.length > sample_count) {
+                steplog.log.pop();
             }
             //arbitrarily chosen value slightly lower than the lower breakeven value
             if(room && stepSum > 150) {
