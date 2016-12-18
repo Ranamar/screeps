@@ -55,3 +55,11 @@ StructureSpawn.prototype.createDedicatedUpgrader = function(settings) {
     }
     return result
 }
+
+StructureSpawn.prototype.createHarvester = function() {
+    let result = this.createCreep([WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE], null, {role:'harvester'});
+    if(!(result < 0)) {
+        Game.creeps[result].workerInit();
+    }
+    return result
+}

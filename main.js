@@ -11,9 +11,9 @@ var distanceHarvest = require('role.distanceHarvester');
 var miner = require('miner');
 var colonizer = require('role.colonizer');
 var experimental = require('worker.experimental');
-// var exp_room = require('room.experimental');
+var exp_room = require('room.experimental');
 
-var MINIMUM_WORKERS = 4.8;
+var MINIMUM_WORKERS = 4.9;
 var MAXIMUM_WORKERS = 11.5;
 
 var profiler = require('screeps-profiler');
@@ -40,6 +40,8 @@ profiler.wrap(function() {
         //prep maintenance role counts by room
         room.memory.genericCount = 0;
         room.memory.upgraderCount = 0;
+        room.memory.transportCount = 0;
+        room.memory.harvesterCount = 0;
     }
     var distanceHarvesterCount = 0;
     console.log('cpu used this tick after dispatcher and tower firing:', Game.cpu.getUsed());
@@ -77,7 +79,15 @@ profiler.wrap(function() {
                 colonizer.run(creep);
                 break;
             default:
-                creep.room.memory.upgraderCount += 1;
+                if(creep.memory.role == 'harvester') {
+                    creep.room.memory.harvesterCount += 1;
+                }
+                else if(creep.memory.role == 'transport') {
+                    creep.room.memory.transportCount += 1;
+                }
+                else if(creep.memory.role == 'upgrader') {
+                    creep.room.memory.upgraderCount += 1;
+                }
                 experimental.runExperimental(creep);
                 break;
         }
@@ -86,10 +96,17 @@ profiler.wrap(function() {
     }
     console.log('cpu used this tick (end of unit AI):', Game.cpu.getUsed());
     
+    if(Memory.rooms.W3N69.harvesterCount == 0) {
+        Game.spawns.BaseW3N69.createHarvester();
+    }
+    
     for(var spawnName in Game.spawns) {
         var spawner = Game.spawns[spawnName];
         console.log(spawner.room,
-                'generic:', spawner.room.memory.genericCount, 'upgrader', spawner.room.memory.upgraderCount, 'remote:', distanceHarvesterCount, 'in transit:', transitCount);
+                'generic:', spawner.room.memory.genericCount,
+                'upgrader', spawner.room.memory.upgraderCount,
+                'remote:', distanceHarvesterCount,
+                'transports:', spawner.room.memory.transportCount);
         // console.log(spawner.room, 'energy', spawner.room.energyAvailable, 'of', spawner.room.energyCapacityAvailable);
         
         if(spawner.room.memory.genericCount < MINIMUM_WORKERS) {
@@ -104,6 +121,9 @@ profiler.wrap(function() {
         if(spawner.room.memory.noEnergy == true && spawner.room.memory.targetWorkerCount > MINIMUM_WORKERS) {
             spawner.room.memory.targetWorkerCount -= 0.002;
             console.log(spawner, 'target workers decreasing to', spawner.room.memory.targetWorkerCount);
+        }
+        else if(spawner.room.memory.transportCount == 0) {
+            spawner.createCreep([CARRY, CARRY, MOVE], null, {role:'transport'});
         }
         else if(spawner.room.energyAvailable == spawner.room.energyCapacityAvailable) {
             if(spawner.room.memory.targetWorkerCount < MAXIMUM_WORKERS) {

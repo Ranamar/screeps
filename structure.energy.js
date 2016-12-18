@@ -8,7 +8,7 @@ Structure.prototype.needsEnergy = function() {
 
 //XXX magic numbers
 StructureLink.prototype.pullEnergy = function() {
-    if(this.energy > 400) {
+    if(this.energy > 400 || this.cooldown > 0) {
         return;
     }
     let links = this.room.find(FIND_STRUCTURES, {filter: (structure) => structure.structureType == STRUCTURE_LINK});
@@ -20,5 +20,30 @@ StructureLink.prototype.pullEnergy = function() {
                 return;
             }
         }
+    }
+}
+
+StructureLink.prototype.pushEnergy = function() {
+    if(this.cooldown > 0) {
+        return;
+    }
+    console.log('>> pushing energy from', this);
+    let targetId = this.room.memory.upgradeLink;
+    if(!targetId) {
+        console.log('>> Did not find upgrade link');
+        let links = this.room.find(FIND_STRUCTURES, {filter: (structure) => structure.structureType == STRUCTURE_LINK});
+        for(let i = 0; i < links.length; i++) {
+            let link = links[i];
+            if(link.energy < 400) {
+                let result = this.transferEnergy(link);
+                if(result == OK) {
+                    return;
+                }
+            }
+        }
+    }
+    else {
+        let target = Game.getObjectById(targetId);
+        this.transferEnergy(target);
     }
 }

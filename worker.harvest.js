@@ -15,7 +15,10 @@ Creep.prototype.selectSource = function() {
         var source = null;
         for(var i = 0; i < sources.length; i++) {
             source = Game.getObjectById(sources[i].id);
-            if(sources[i].miners.length <= leastCount && source.energy > 0) {
+            if(sources[i].dedicatedHarvester && !(sources[i].dedicatedHarvester in Game.creeps)) {
+                delete sources[i].dedicatedHarvester;
+            }
+            if(!(sources[i].dedicatedHarvester) && sources[i].miners.length <= leastCount && source.energy > 0) {
                 leastIndex = i;
                 leastCount = sources[i].miners.length;
             }
@@ -25,9 +28,9 @@ Creep.prototype.selectSource = function() {
         this.memory.target = sources[leastIndex].id;
         // console.log(this.name, 'selected harvest target', this.memory.targetIndex, this.memory.target);
     }
-    // else {
-    //     console.log(this.name, 'already has harvest target', this.memory.targetIndex, this.memory.target);
-    // }
+    else {
+        // console.log(this.name, 'already has harvest target', this.memory.targetIndex, this.memory.target);
+    }
 };
 
 Creep.prototype.unregisterGathering = function() {

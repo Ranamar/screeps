@@ -1,5 +1,41 @@
 var lodash = require('lodash');
 
+Room.prototype.associateLinks = function() {
+    let sources = this.memory.energySources;
+    if(sources) {
+        for(let i = 0; i < sources.length; i++) {
+            if(sources[i].link) {
+                console.log('Source', sources[i].id, 'has link', sources[i].link);
+            }
+            else {
+                let source = Game.getObjectById(sources[i].id);
+                let closestLink = source.pos.findClosestByRange(FIND_MY_STRUCTURES, {filter: (structure) => structure.structureType == STRUCTURE_LINK});
+                console.log(source, source.pos, 'has closest link', closestLink, closestLink.pos, source.pos.getRangeTo(closestLink));
+                if(source.pos.getRangeTo(closestLink) < 3) {
+                    sources[i].link = closestLink.id;
+                }
+            }
+        }
+    }
+    else {
+        console.log(this, 'has not saved its sources:', sources);
+    }
+    if(!this.memory.upgradeLink) {
+        let upgradeLink = this.controller.pos.findClosestByRange(FIND_MY_STRUCTURES, {filter: (structure) => structure.structureType == STRUCTURE_LINK});
+        console.log(this.controller, this.controller.pos, 'has closest link', upgradeLink, upgradeLink.pos, this.controller.pos.getRangeTo(upgradeLink));
+        this.memory.upgradeLink = upgradeLink.id;
+    }
+    else {
+        console.log('Controller has link', this.memory.upgradeLink);
+    }
+}
+
+
+
+
+
+
+//experimental automatic link placement - not currently used
 var isWalkable = function(squareTerrain) {
     return squareTerrain.terrain != 'wall';
 }
