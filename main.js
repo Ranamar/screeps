@@ -14,7 +14,7 @@ var experimental = require('worker.experimental');
 var exp_room = require('room.experimental');
 
 var MINIMUM_WORKERS = 3.9;
-var MAXIMUM_WORKERS = 11.5;
+var MAXIMUM_WORKERS = 10.5;
 
 var profiler = require('screeps-profiler');
 profiler.enable();
@@ -112,7 +112,7 @@ profiler.wrap(function() {
         // console.log(spawner.room, 'energy', spawner.room.energyAvailable, 'of', spawner.room.energyCapacityAvailable);
         
         //TODO: determine how I'm setting Memory.rooms.linked
-        if(spawner.room.memory.linked) {
+        if(spawner.room.memory.upgradeLink) {
             if(spawner.room.memory.harvesterCount == 0) {
                 spawner.createHarvester();
                 console.log(spawner, 'spawning dedicated harvester');

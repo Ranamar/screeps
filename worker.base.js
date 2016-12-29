@@ -92,7 +92,7 @@ Creep.prototype.localMaintenance = function() {
 Creep.prototype.findJob = function() {
     if(this.memory.mode == 'harvest') {
         let target = Game.getObjectById(this.memory.target);
-        if(target.energy == 0 && this.room.storage.store.energy > 0) {
+        if(target.energy == 0 && this.room.storage && this.room.storage.store.energy > 0) {
             let job = {
                 job: 'getenergy',
                 target: this.room.storage.id
@@ -131,7 +131,7 @@ Creep.prototype.work = function() {
     //Try operation again
     result = this.modeOperation(target);
     //Look for repair/build/reclaim targets of opportunity if failed
-    if(result != OK && this.carry.energy > 70) {
+    if(result != OK && (this.carry.energy > 70 || this.memory.mode == 'harvest')) {
         this.localMaintenance();
     }
 }

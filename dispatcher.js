@@ -66,12 +66,14 @@ var assignWorkerJob = function(creep) {
     }
     var task = null;
     //resource return - confuses everything else
-    for(let resource in creep.carry) {
-        if(resource != RESOURCE_ENERGY && creep.carry[resource] > 0) {
+    if(creep.room.storage) {
+        for(let resource in creep.carry) {
+            if(resource != RESOURCE_ENERGY && creep.carry[resource] > 0) {
             return {
-                job: 'storeall',
-                target: creep.room.storage.id
-            };
+                    job: 'storeall',
+                    target: creep.room.storage.id
+                };
+            }
         }
     }
     //resource pickup - decays 50% in 600 turns
@@ -198,7 +200,7 @@ var searchTasks = function(room) {
 var findTasks = function(room) {
     var results;
     
-    if(!room.memory.tasks || room.memory.tasks.staleness > 75) {
+    if(!room.memory.tasks || room.memory.tasks.staleness > 10) {
         results = dispatcher.searchTasks(room);
     }
     else {
