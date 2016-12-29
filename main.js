@@ -13,7 +13,7 @@ var colonizer = require('role.colonizer');
 var experimental = require('worker.experimental');
 var exp_room = require('room.experimental');
 
-var MINIMUM_WORKERS = 4.9;
+var MINIMUM_WORKERS = 3.9;
 var MAXIMUM_WORKERS = 11.5;
 
 var profiler = require('screeps-profiler');
@@ -78,6 +78,8 @@ profiler.wrap(function() {
             case 'colonizer':
                 colonizer.run(creep);
                 break;
+            case 'scavenger':
+                bleeder.scavenge(creep);
             default:
                 if(creep.memory.role == 'harvester') {
                     creep.room.memory.harvesterCount += 1;
@@ -96,10 +98,6 @@ profiler.wrap(function() {
     }
     console.log('cpu used this tick (end of unit AI):', Game.cpu.getUsed());
     
-    if(Memory.rooms.W3N69.harvesterCount == 0) {
-        Game.spawns.BaseW3N69.createHarvester();
-    }
-    
     for(var spawnName in Game.spawns) {
         var spawner = Game.spawns[spawnName];
         console.log(spawner.room,
@@ -109,7 +107,10 @@ profiler.wrap(function() {
                 'transports:', spawner.room.memory.transportCount);
         // console.log(spawner.room, 'energy', spawner.room.energyAvailable, 'of', spawner.room.energyCapacityAvailable);
         
-        if(spawner.room.memory.genericCount < MINIMUM_WORKERS) {
+        if(spawner.room.memory.harvesterCount == 0) {
+            spawner.createHarvester();
+        }
+        else if(spawner.room.memory.genericCount < MINIMUM_WORKERS) {
             spawner.createScaledWorker({role:'worker', mode:'unassigned'});
             console.log('spawning generic worker due to low count');
         }
@@ -135,7 +136,7 @@ profiler.wrap(function() {
                 spawner.createScaledWorker({role:'worker', mode:'unassigned'});
                 console.log('spawning generic worker due to high energy');
             }
-            else if(distanceHarvesterCount < 3) {
+            else if(distanceHarvesterCount < 4) {
                 //These tend to truck stuff far enough that the extra capacity relative to work modules is worth it.
                 spawner.createSymmetricalWorker({role:'distanceHarvester', flag:'distanceHarvestB', destination:'W3N69'});
                 console.log('Spawning remote harvester');

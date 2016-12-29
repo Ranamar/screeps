@@ -9,7 +9,7 @@ const creep_life = 1500;
 const part_cost = 50;
 const MIN_VALUABLE_ROAD_SCORE = (road_cost*5/4)*(analytics.sample_span*analytics.sample_count/road_life)*(creep_life/part_cost);
 
-const WALL_TARGET_STRENGTH = 250000;
+const WALL_TARGET_STRENGTH = 2500000;
 const MIN_DAMAGE_TO_REPAIR = 800;
 
 Structure.prototype.needsRepairs = function() {

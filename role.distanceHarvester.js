@@ -44,10 +44,12 @@ var roleDistanceHarvester = {
                 if(result == ERR_NOT_IN_RANGE) {
                     creep.moveTo(target);
                 }
-                else if(result == ERR_NOT_ENOUGH_RESOURCES && creep.carry.energy > 20) {
-                    creep.memory.harvesting = false;
+                else if(result == ERR_NOT_ENOUGH_ENERGY) {
                     creep.unregisterGathering();
-                    roleDistanceHarvester.upgradeAtDestination(creep);
+                    if(creep.carry.energy > 20) {
+                        creep.memory.harvesting = false;
+                        roleDistanceHarvester.upgradeAtDestination(creep);
+                    }
                 }
             }
         } else {

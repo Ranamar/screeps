@@ -19,6 +19,46 @@ Creep.prototype.moveToFlag = function() {
 }
 
 module.exports = {
+    scavenge: function(creep) {
+        if(creep.carry.energy == 0) {
+            creep.memory.seekEnergy = true;
+        }
+        else if(creep.carry.energy == creep.carryCapacity) {
+            creep.memory.seekEnergy = false;
+        }
+        
+        let flag = Game.flags[creep.memory.flag];
+        if(creep.memory.seekEnergy) {
+            if(creep.pos.roomName != flag.pos.roomName) {
+                creep.moveTo(flag);
+            }
+            else {
+                let resource = creep.pos.findClosestByPath(FIND_DROPPED_RESOURCES);
+                if(resource) {
+                    creep.moveTo(resource);
+                    creep.pickup(resource);
+                    return;
+                }
+                let building = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES);
+                if(building) {
+                    creep.moveTo(building);
+                    if(building.structureType == STRUCTURE_SPAWN && building.energy > 0) {
+                        let result = creep.withdraw(building, RESOURCE_ENERGY);
+                    }
+                    else {
+                        creep.dismantle(building);
+                    }
+                    return;
+                }
+                console.log('Scavenger', creep.name, creep.pos, 'has no targets');
+            }
+        }
+        else {
+            let storage = Game.rooms[creep.memory.home].storage;
+            creep.moveTo(storage);
+            creep.transfer(storage, RESOURCE_ENERGY);
+        }
+    },
     dismantle: function(creep) {
         if(creep.moveToFlag()) {
             return;

@@ -30,15 +30,15 @@ var dedicatedUpgrader = function(creep) {
 var dedicatedHarvester = function(creep) {
     let target = Game.getObjectById(creep.memory.target);
     let result = creep.harvest(target);
-    if(result == ERR_NOT_IN_RANGE) {
-        console.log('>> harvester', creep.name, 'moving to energy')
+    if(result == ERR_NOT_IN_RANGE || result == ERR_NOT_ENOUGH_RESOURCES) {
+        console.log('>> harvester', creep.name, creep.pos, 'moving to energy')
         creep.loggedMove(target);
     }
     else if(result != OK) {
-        console.log('>> harvester', creep.name, 'got harvest error', result);
+        console.log('>> harvester', creep.name, creep.pos, 'got harvest error', result);
     }
     
-    if(creep.carry.energy > 10) {
+    if(creep.carry.energy > 20) {
         let link = Game.getObjectById(creep.memory.link);
         if(link.energy > 750) {
             link.pushEnergy();
@@ -84,7 +84,7 @@ Room.prototype.getSourceLinks = function() {
 }
 
 var energyTransport = function(creep) {
-    console.log(creep.name, creep.carry.energy, 'of', creep.carryCapacity)
+    // console.log(creep.name, creep.carry.energy, 'of', creep.carryCapacity)
     if(creep.carry.energy == 0 && !creep.memory.collecting) {
         creep.memory.storing = false;
         creep.memory.collecting = true;
@@ -96,7 +96,7 @@ var energyTransport = function(creep) {
             return;
         }
         creep.memory.target = targetLink.id;
-        console.log(creep.name, 'collecting at', creep.memory.target);
+        // console.log(creep.name, 'collecting at', creep.memory.target);
     }
     else if(creep.carry.energy > 0 && !creep.memory.storing) {
         creep.memory.storing = true;
@@ -107,10 +107,10 @@ var energyTransport = function(creep) {
             closest = creep.room.storage;
         }
         creep.memory.target = closest.id;
-        console.log(creep.name, 'storing at', creep.memory.target);
+        // console.log(creep.name, 'storing at', creep.memory.target);
     }
     let target = Game.getObjectById(creep.memory.target);
-    console.log(creep.name, 'target', target, 'collecting', creep.memory.collecting, 'storing', creep.memory.storing);
+    // console.log(creep.name, 'target', target, 'collecting', creep.memory.collecting, 'storing', creep.memory.storing);
     if(creep.memory.storing) {
         let result = creep.transfer(target, RESOURCE_ENERGY);
         if(result == ERR_NOT_IN_RANGE) {
