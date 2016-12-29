@@ -31,11 +31,10 @@ var dedicatedHarvester = function(creep) {
     let target = Game.getObjectById(creep.memory.target);
     let result = creep.harvest(target);
     if(result == ERR_NOT_IN_RANGE || result == ERR_NOT_ENOUGH_RESOURCES) {
-        console.log('>> harvester', creep.name, creep.pos, 'moving to energy')
         creep.loggedMove(target);
     }
     else if(result != OK) {
-        console.log('>> harvester', creep.name, creep.pos, 'got harvest error', result);
+        console.log(creep.name, creep.pos, 'got harvest error', result);
     }
     
     if(creep.carry.energy > 20) {
@@ -84,19 +83,24 @@ Room.prototype.getSourceLinks = function() {
 }
 
 var energyTransport = function(creep) {
-    // console.log(creep.name, creep.carry.energy, 'of', creep.carryCapacity)
     if(creep.carry.energy == 0 && !creep.memory.collecting) {
         creep.memory.storing = false;
         creep.memory.collecting = true;
-        let sourceLinks = creep.room.getSourceLinks();
-        let targetLink = creep.pos.findClosestByPath(sourceLinks, {filter: (link) => link.energy >= 100});
-        if(!targetLink) {
-            // Something has gone wrong, like no energy to get
-            creep.memory.collecting = false;
-            return;
-        }
-        creep.memory.target = targetLink.id;
-        // console.log(creep.name, 'collecting at', creep.memory.target);
+        // if(creep.room.memory.tasks.droppedEnergy.length > 0) {
+        //     creep.memory.target = creep.room.memory.tasks.droppedEnergy[0].id;
+        //     creep.memory.pickup = true;
+        // }
+        // else {
+        //     creep.memory.pickup = false;
+            let sourceLinks = creep.room.getSourceLinks();
+            let targetLink = creep.pos.findClosestByPath(sourceLinks, {filter: (link) => link.energy >= 100});
+            if(!targetLink) {
+                // Something has gone wrong, like no energy to get
+                creep.memory.collecting = false;
+                return;
+            }
+            creep.memory.target = targetLink.id;
+        // }
     }
     else if(creep.carry.energy > 0 && !creep.memory.storing) {
         creep.memory.storing = true;
@@ -107,12 +111,16 @@ var energyTransport = function(creep) {
             closest = creep.room.storage;
         }
         creep.memory.target = closest.id;
-        // console.log(creep.name, 'storing at', creep.memory.target);
     }
     let target = Game.getObjectById(creep.memory.target);
-    // console.log(creep.name, 'target', target, 'collecting', creep.memory.collecting, 'storing', creep.memory.storing);
     if(creep.memory.storing) {
-        let result = creep.transfer(target, RESOURCE_ENERGY);
+        let result;
+        // if(creep.memory.pickup) {
+        //     result = creep.pickup(target);
+        // }
+        // else {
+            result = creep.transfer(target, RESOURCE_ENERGY);
+        // }
         if(result == ERR_NOT_IN_RANGE) {
             creep.loggedMove(target);
         }

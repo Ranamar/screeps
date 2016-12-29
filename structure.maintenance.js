@@ -13,8 +13,6 @@ const WALL_TARGET_STRENGTH = 2500000;
 const MIN_DAMAGE_TO_REPAIR = 800;
 
 Structure.prototype.needsRepairs = function() {
-    // if(this.hits < this.targetHP())
-    //     console.log(this, this.pos, this.hits, this.targetHP(), this.hitsMax, this.hits < this.targetHP());
     return (this.hits < (this.targetHP() - MIN_DAMAGE_TO_REPAIR));
 };
 
@@ -23,8 +21,6 @@ StructureRoad.prototype.needsRepairs = function() {
     if(this.structureType == STRUCTURE_ROAD) {
         dynamicScore = analytics.getWalkScore(this.pos) > MIN_VALUABLE_ROAD_SCORE;
     }
-    // if(dynamicScore)
-    //     console.log(this, this.pos, this.hits, this.targetHP(), this.hitsMax, this.hits < this.targetHP(), dynamicScore);
     return (this.hits < (this.targetHP() - MIN_DAMAGE_TO_REPAIR)) && dynamicScore;
 };
 
@@ -43,7 +39,8 @@ StructureRampart.prototype.targetHP = function() {
 //This pings if a short-range heal from a tower will put it near max health.
 Structure.prototype.needsMaintenance = function() {
     let damage = this.targetHP() - this.hits;
-    return (damage >= MIN_DAMAGE_TO_REPAIR) && (damage < MIN_DAMAGE_TO_REPAIR*2);
+    //bit at the end is to cause towers to repair 1hp ramparts
+    return (damage >= MIN_DAMAGE_TO_REPAIR) && (damage < MIN_DAMAGE_TO_REPAIR*2) || this.hits < MIN_DAMAGE_TO_REPAIR;
 };
 
 StructureRampart.prototype.needsMaintenance = function() {

@@ -35,7 +35,8 @@ StructureSpawn.prototype.createSymmetricalWorker = function(settings) {
     var blockCost = 200;
     var totalCost = 0;
     var largest = [];
-    while(totalCost + blockCost <= energy) {
+    //We can't have more than 50 body parts on a creep.
+    while(totalCost + blockCost <= energy && largest.length < 48) {
         largest = largest.concat(block);
         totalCost += blockCost;
     }
@@ -49,7 +50,7 @@ StructureSpawn.prototype.createSymmetricalWorker = function(settings) {
 StructureSpawn.prototype.createDedicatedUpgrader = function(settings) {
     //We'll create a more nuanced thing later, once I get a better handle on what I can do with this.
     //To save a little on eventually useless parts, this moves at half speed even on roads.
-    let result = this.createCreep([WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE], null, settings);
+    let result = this.createCreep([WORK, WORK, WORK, WORK, WORK, WORK, /*WORK, WORK, WORK, WORK,*/ CARRY, MOVE, MOVE, MOVE], null, settings);
     if(!(result < 0)) {
         Game.creeps[result].workerInit();
     }

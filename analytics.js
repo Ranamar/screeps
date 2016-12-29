@@ -112,6 +112,15 @@ var processLogs = function(roomName) {
 
         if(stepSum == 0) {
             delete tileLog[spotString];
+            if(room) {
+                let sites = room.lookForAt(LOOK_CONSTRUCTION_SITES, spot);
+                for(let i = 0; i < sites.length; i++) {
+                    if(sites[i].structureType == STRUCTURE_ROAD && sites[i].progress == 0) {
+                        sites[i].remove();
+                        console.log('>> removed construction site at', spot, 'because of zero walkscore');
+                    }
+                }
+            }
         }
         else {
             steplog.log.unshift(0);
@@ -137,5 +146,4 @@ var analytics = {
 }
 
 // profiler.registerObject(analytics, 'analytics');
-
 module.exports = analytics;

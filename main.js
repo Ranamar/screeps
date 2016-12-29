@@ -42,6 +42,10 @@ profiler.wrap(function() {
         room.memory.upgraderCount = 0;
         room.memory.transportCount = 0;
         room.memory.harvesterCount = 0;
+        
+        if(!room.memory.targetWorkerCount) {
+            room.memory.targetWorkerCount = (MINIMUM_WORKERS + MAXIMUM_WORKERS)/2;
+        }
     }
     var distanceHarvesterCount = 0;
     console.log('cpu used this tick after dispatcher and tower firing:', Game.cpu.getUsed());
@@ -107,24 +111,29 @@ profiler.wrap(function() {
                 'transports:', spawner.room.memory.transportCount);
         // console.log(spawner.room, 'energy', spawner.room.energyAvailable, 'of', spawner.room.energyCapacityAvailable);
         
-        if(spawner.room.memory.harvesterCount == 0) {
-            spawner.createHarvester();
+        //TODO: determine how I'm setting Memory.rooms.linked
+        if(spawner.room.memory.linked) {
+            if(spawner.room.memory.harvesterCount == 0) {
+                spawner.createHarvester();
+                console.log(spawner, 'spawning dedicated harvester');
+            }
+            else if(spawner.room.memory.transportCount == 0) {
+                spawner.createCreep([CARRY, CARRY, MOVE], null, {role:'transport'});
+                console.log(spawner, 'spawning transport');
+            }
+            else if(spawner.room.memory.upgraderCount == 0 && spawner.room.controller.level >= 5) {
+                spawner.createDedicatedUpgrader({role:'upgrader', mode:'upgrader'});
+                console.log(spawner, 'spawning dedicated upgrader');
+            }
         }
         else if(spawner.room.memory.genericCount < MINIMUM_WORKERS) {
             spawner.createScaledWorker({role:'worker', mode:'unassigned'});
             console.log('spawning generic worker due to low count');
         }
-        else if(spawner.room.memory.needsMiner) {
-            console.log(spawner, 'spawning miner');
-            spawner.room.memory.miner = spawner.createCreep([WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE], null, {role:'miner'});
-            spawner.room.memory.needsMiner = false;
-        }
+        
         if(spawner.room.memory.noEnergy == true && spawner.room.memory.targetWorkerCount > MINIMUM_WORKERS) {
             spawner.room.memory.targetWorkerCount -= 0.002;
             console.log(spawner, 'target workers decreasing to', spawner.room.memory.targetWorkerCount);
-        }
-        else if(spawner.room.memory.transportCount == 0) {
-            spawner.createCreep([CARRY, CARRY, MOVE], null, {role:'transport'});
         }
         else if(spawner.room.energyAvailable == spawner.room.energyCapacityAvailable) {
             if(spawner.room.memory.targetWorkerCount < MAXIMUM_WORKERS) {
@@ -132,22 +141,26 @@ profiler.wrap(function() {
                 console.log(spawner, 'target workers increasing to', spawner.room.memory.targetWorkerCount);
             }
             
-            if(spawner.room.memory.targetWorkerCount > spawner.room.memory.genericCount) {
+            if(spawner.room.memory.needsMiner) {
+                console.log(spawner, 'spawning miner');
+                spawner.room.memory.miner = spawner.createCreep([WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE], null, {role:'miner'});
+                spawner.room.memory.needsMiner = false;
+            }
+            else if(spawner.room.memory.targetWorkerCount > spawner.room.memory.genericCount) {
                 spawner.createScaledWorker({role:'worker', mode:'unassigned'});
-                console.log('spawning generic worker due to high energy');
+                console.log(spawner, 'spawning generic worker due to high energy');
             }
-            else if(distanceHarvesterCount < 4) {
-                //These tend to truck stuff far enough that the extra capacity relative to work modules is worth it.
-                spawner.createSymmetricalWorker({role:'distanceHarvester', flag:'distanceHarvestB', destination:'W3N69'});
-                console.log('Spawning remote harvester');
-            }
-            else if(spawner.room.memory.upgraderCount == 0 && spawner.room.controller.level >= 5) {
-                spawner.createDedicatedUpgrader({role:'upgrader', mode:'upgrader'});
-            }
-            // else if(Math.random() < 0.1) {
-            //     //We expect these to be going off-road, so symmetrical is a lot better than the alternative.
-            //     spawner.createSymmetricalWorker({role:'transit', destination: 'W3N69', destRole:'worker'});
-            //     console.log('spawning worker for export');
+            // else if(distanceHarvesterCount < 1) {
+            //     //These tend to truck stuff far enough that the extra capacity relative to work modules is worth it.
+            //     spawner.createSymmetricalWorker({role:'distanceHarvester', flag:'distanceHarvestA', destination:'W2N68'});
+            //     console.log('Spawning remote harvester');
+            // }
+            // else {
+            //     console.log(spawner, 'spawning creep for transit');
+            //     let result = spawner.createSymmetricalWorker({role:'transit', destRole:'worker', destination:'W2N68'});
+            //     if(result != OK) {
+            //         console.log(spawner, 'error:', result);
+            //     }
             // }
         }
     }

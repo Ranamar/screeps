@@ -13,9 +13,8 @@ var profiler = require('screeps-profiler');
  
 var convertTaskToOrder = function(task) {
     var rv = null;
-    // console.log('>> task', task);
     if(!task) {
-        // console.log('>> Received bad task', task);
+        console.log('>> Received bad task', task);
         return null;
     }
     if(task === 'harvest') {
@@ -33,33 +32,29 @@ var convertTaskToOrder = function(task) {
         };
     }
     else if(task instanceof Resource) {
-        // console.log('>> assignment: pick up resource');
         rv = {
             job: 'pickup',
             target: task.id
         };
     }
-    else {
-        if(task.needsEnergy() || task != null && task.structureType == STRUCTURE_STORAGE) {
-            rv = {
-                job: 'store',
-                target: task.id
-            };
-        }
-        else if((task instanceof Structure) && task.needsRepairs()) {
-            rv = {
-                job: 'repair',
-                target: task.id
-            };
-        }
-        else {
-            console.log('received structure with no task', task);
-            rv = {
-                job: 'unassigned'
-            };
-        }
+    else if((task instanceof Structure) && task.needsRepairs()) {
+        rv = {
+            job: 'repair',
+            target: task.id
+        };
     }
-    // console.log('>> converted Task', rv.job, rv.target);
+    else if(task.needsEnergy() || task.structureType == STRUCTURE_STORAGE) {
+        rv = {
+            job: 'store',
+            target: task.id
+        };
+    }
+    else {
+        console.log('received structure with no task', task);
+        rv = {
+            job: 'unassigned'
+        };
+    }
     return rv;
 }
 
@@ -75,7 +70,7 @@ var assignWorkerJob = function(creep) {
         if(resource != RESOURCE_ENERGY && creep.carry[resource] > 0) {
             return {
                 job: 'storeall',
-                target: Game.rooms['W1N69'].storage.id
+                target: creep.room.storage.id
             };
         }
     }
@@ -124,15 +119,18 @@ var assignWorkerJob = function(creep) {
         if(tasks.needEnergy.length > 0 /*&& Math.random() < 0.3*/) {
             task = tasks.needEnergy.shift();
         }
-        else if(Math.random() < 0.1) {
-            task = creep.room.storage;
-        }
         else {
             task = 'upgrade';
         }
     }
     if(!task) {
         console.log('***', creep.name, creep.pos, 'did not get a task. Energy:', creep.carry.energy);
+        console.log('room energy full?', creep.room.energyCapacityAvailable, creep.room.energyCapacityAvailable,  creep.room.energyAvailable);
+        console.log('repairs?', tasks.needRepairs, tasks.needRepairs.length);
+        console.log('building?', tasks.needBuilding.length);
+    }
+    else if(task == creep.room.storage) {
+        console.log('***', creep.name, creep.pos, 'assigned to store at storage');
         console.log('room energy full?', creep.room.energyCapacityAvailable, creep.room.energyCapacityAvailable,  creep.room.energyAvailable);
         console.log('repairs?', tasks.needRepairs, tasks.needRepairs.length);
         console.log('building?', tasks.needBuilding.length);
@@ -151,7 +149,30 @@ var assignJob = function(creep) {
     }
 }
 
-var findTasks = function(room) {
+var refreshTasks = function(room) {
+    var construction = lodash.map(room.memory.tasks.needBuilding, (entry) => Game.getObjectById(entry.id));
+    construction = lodash.filter(construction, (site) => site != undefined);
+    var needEnergy = lodash.map(room.memory.tasks.needEnergy, (entry) => Game.getObjectById(entry.id));
+    needEnergy = lodash.filter(needEnergy, (structure) => structure && structure.needsEnergy());
+    var needMaintenance = lodash.map(room.memory.tasks.needMaintenance, (entry) => Game.getObjectById(entry.id));
+    needMaintenance = lodash.filter(needEnergy, (structure) => structure && structure.needsMaintenance());
+    var needRepairs = lodash.map(room.memory.tasks.needRepairs, (entry) => Game.getObjectById(entry.id));
+    needRepairs = lodash.filter(needRepairs, (structure) => structure && structure.needsRepairs())
+    var droppedEnergy = room.find(FIND_DROPPED_RESOURCES);
+    
+    var results = {
+        droppedEnergy: droppedEnergy,
+        needEnergy: needEnergy,
+        needMaintenance: needMaintenance,
+        needRepairs: needRepairs,
+        needBuilding: construction,
+        staleness: room.memory.tasks.staleness + 1
+    }
+    
+    return results;
+}
+
+var searchTasks = function(room) {
     var construction = room.find(FIND_CONSTRUCTION_SITES);
     
     var needEnergy = room.find(FIND_MY_STRUCTURES, {filter: (structure) => structure.needsEnergy()});
@@ -167,8 +188,23 @@ var findTasks = function(room) {
         needEnergy: needEnergy,
         needMaintenance: needMaintenance,
         needRepairs: needRepairs,
-        needBuilding: construction
+        needBuilding: construction,
+        staleness: 0
+    };
+    
+    return results;
+}
+
+var findTasks = function(room) {
+    var results;
+    
+    if(!room.memory.tasks || room.memory.tasks.staleness > 75) {
+        results = dispatcher.searchTasks(room);
     }
+    else {
+        results = dispatcher.refreshTasks(room);
+    }
+    
     room.memory.tasks = results;
     return results;
 }
@@ -176,6 +212,8 @@ var findTasks = function(room) {
 var dispatcher = {
     findTasks: findTasks,
     assignJob: assignJob,
+    searchTasks: searchTasks,
+    refreshTasks: refreshTasks
 };
 profiler.registerObject(dispatcher, 'dispatcher');
 

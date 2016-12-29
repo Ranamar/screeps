@@ -1,6 +1,6 @@
 var harvester = require('worker.harvest');
 var resource = require('worker.resources');
-var maintenance = require('structures.maintenance');
+var maintenance = require('structure.maintenance');
 var upgrading = require('worker.upgrade');
 
 var experimental = require('worker.experimental');
@@ -17,7 +17,6 @@ Creep.prototype.workerInit = function() {
 }
 
 Creep.prototype.assignJob = function(job) {
-    // console.log(this.name, 'assigning job', job.job, job.target);
     if(!job) {
         console.log(this.name, 'assigned no job; bailing out');
         this.transitionMode('unassigned');
@@ -45,24 +44,20 @@ Creep.prototype.modeOperation = function(target) {
     switch(this.memory.mode) {
         case 'harvest':
             return this.gatherEnergy(target);
-            break;
         case 'build':
             return this.build(target);
-            break;
         case 'store':
             return this.storeEnergy(target);
-            break;
         case 'storeall':
             return this.storeAny(target);
         case 'upgrade':
             return this.upgradeController(this.room.controller);
-            break;
         case 'repair':
             return this.checkedRepair(target);
-            break;
         case 'pickup':
             return this.pickup(target);
-            break;
+        case 'getenergy':
+            return this.withdraw(target, RESOURCE_ENERGY);
         default:
             //Report we can't do it if we don't know what to do.
             // console.log(creep.name, 'does nothing with', creep.memory.mode);
@@ -95,6 +90,18 @@ Creep.prototype.localMaintenance = function() {
 }
 
 Creep.prototype.findJob = function() {
+    if(this.memory.mode == 'harvest') {
+        let target = Game.getObjectById(this.memory.target);
+        if(target.energy == 0 && this.room.storage.store.energy > 0) {
+            let job = {
+                job: 'getenergy',
+                target: this.room.storage.id
+            };
+            // console.log(this.name, job.job, job.target, this.room.storage);
+            this.assignJob(job);
+            return;
+        }
+    }
     var job = dispatcher.assignJob(this);
     this.assignJob(job);
 }
@@ -110,9 +117,10 @@ Creep.prototype.work = function() {
         result == ERR_NOT_ENOUGH_RESOURCES ||
         result == ERR_INVALID_TARGET ||
         result == ERR_NO_BODYPART) {
-        // console.log(this.name, 'tried to', this.memory.mode, 'with target', this.memory.target, target, result);
         //No capacity to do this job - find something else to do.
         this.findJob();
+        //Don't forget to retarget for this function
+        target = Game.getObjectById(this.memory.target);
         result = this.modeOperation(target);
     }
     //move if out of range
@@ -124,7 +132,6 @@ Creep.prototype.work = function() {
     result = this.modeOperation(target);
     //Look for repair/build/reclaim targets of opportunity if failed
     if(result != OK && this.carry.energy > 70) {
-        // console.log('>>', this.name, 'going for local maintenance', this.pos);
         this.localMaintenance();
     }
 }
@@ -139,6 +146,7 @@ Creep.prototype.initMode = function(mode, target) {
             this.registerUpgrading();
             break;
         default:
+            console.log(this.name, 'init mode', mode, target);
             this.memory.target = target;
             break;
     }
@@ -163,6 +171,8 @@ Creep.prototype.moveToNewRoom = function() {
     if(this.pos.roomName == this.memory.destination) {
         this.memory.role = this.memory.destRole;
         delete this.memory.destRole;
+        //XXX danger: only works with workers
+        this.work();
     }
     else {
         var target = Game.rooms[this.memory.destination].controller;
