@@ -11,6 +11,7 @@ StructureSpawn.prototype.createScaledWorker = function(settings) {
     //At this point, we really want the extra work units to max out our sources.
     //Also, it's somewhat more efficient than the 400 with roads.
     if(energy >= 550) {
+        largest = largest.concat([WORK, CARRY]);
     }
     //finish off the triad if we have more energy
     if(energy >= 600) {
