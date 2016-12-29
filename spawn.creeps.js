@@ -7,8 +7,14 @@ StructureSpawn.prototype.createScaledWorker = function(settings) {
     if(energy >= 400) {
         largest = largest.concat([WORK, CARRY, MOVE]);
     }
+    //RCL 2 maxed out special case
+    //At this point, we really want the extra work units to max out our sources.
+    //Also, it's somewhat more efficient than the 400 with roads.
+    if(energy >= 550) {
+    }
+    //finish off the triad if we have more energy
     if(energy >= 600) {
-        largest = largest.concat([WORK, CARRY, MOVE]);
+        largest = largest.push(MOVE);
     }
     //If we've got less than 850 energy, this beats 5/2/4.
     //RCL 3 gets us exactly 800 energy at the top end, so check for that case.
