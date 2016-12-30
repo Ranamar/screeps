@@ -7,7 +7,7 @@ const road_cost = 250; //This is the cost to repair a built swamp road from 0
 const road_life = 50000;
 const creep_life = 1500;
 const part_cost = 50;
-const MIN_VALUABLE_ROAD_SCORE = (road_cost*5/4)*(analytics.sample_span*analytics.sample_count/road_life)*(creep_life/part_cost);
+const MIN_VALUABLE_ROAD_SCORE = (road_cost*5/4)*(analytics.sampleSpan*analytics.sampleCount/road_life)*(creep_life/part_cost);
 
 const WALL_TARGET_STRENGTH = 2500000;
 const MIN_DAMAGE_TO_REPAIR = 800;
@@ -17,11 +17,8 @@ Structure.prototype.needsRepairs = function() {
 };
 
 StructureRoad.prototype.needsRepairs = function() {
-    var dynamicScore = true;
-    if(this.structureType == STRUCTURE_ROAD) {
-        dynamicScore = analytics.getWalkScore(this.pos) > MIN_VALUABLE_ROAD_SCORE;
-    }
-    return (this.hits < (this.targetHP() - MIN_DAMAGE_TO_REPAIR)) && dynamicScore;
+    let dynamicScore = analytics.getWalkScore(this.pos) > MIN_VALUABLE_ROAD_SCORE;
+    return (this.hits < (this.hitsMax - MIN_DAMAGE_TO_REPAIR)) && dynamicScore;
 };
 
 Structure.prototype.targetHP = function() {
@@ -52,8 +49,7 @@ StructureRampart.prototype.needsMaintenance = function() {
 StructureRoad.prototype.needsMaintenance = function() {
     var dynamicScore = true;
     dynamicScore = analytics.getWalkScore(this.pos) > MIN_VALUABLE_ROAD_SCORE;
-    // return (this.hits < this.hitsMax*0.8) && (this.hits < WALL_TARGET_STRENGTH) && dynamicScore;
-    let damage = this.targetHP() - this.hits;
+    let damage = this.hitsMax - this.hits;
     return (damage > MIN_DAMAGE_TO_REPAIR) && (damage < MIN_DAMAGE_TO_REPAIR*2) && dynamicScore;
 };
 

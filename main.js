@@ -14,7 +14,7 @@ var experimental = require('worker.experimental');
 var exp_room = require('room.experimental');
 
 var MINIMUM_WORKERS = 3.9;
-var MAXIMUM_WORKERS = 10.5;
+var MAXIMUM_WORKERS = 9.2;
 
 var profiler = require('screeps-profiler');
 profiler.enable();
@@ -132,7 +132,7 @@ profiler.wrap(function() {
         }
         
         if(spawner.room.memory.noEnergy == true && spawner.room.memory.targetWorkerCount > MINIMUM_WORKERS) {
-            spawner.room.memory.targetWorkerCount -= 0.002;
+            spawner.room.memory.targetWorkerCount -= 0.01;
             console.log(spawner, 'target workers decreasing to', spawner.room.memory.targetWorkerCount);
         }
         else if(spawner.room.energyAvailable == spawner.room.energyCapacityAvailable) {
