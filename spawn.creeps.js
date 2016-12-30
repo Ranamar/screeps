@@ -25,9 +25,15 @@ StructureSpawn.prototype.createScaledWorker = function(settings) {
     if(energy >= 850) {
         largest = largest.concat([WORK, WORK, MOVE]);
     }
-    //If we truly have a ton of energy, double-stack it.
+    if(energy >= 1000) {
+        largest = largest.concat([CARRY, CARRY, MOVE]);
+    }
+    if(energy >= 1200) {
+        largest = largest.concat([WORK, CARRY, MOVE]);
+    }
+    //If we truly have a ton of energy, double-stack 5/3/4.
     if(energy >= 1700) {
-        largest = largest.concat([WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE]);
+        largest = largest.concat([WORK, WORK, WORK, WORK, MOVE, MOVE]);
     }
     var result = this.createCreep(largest, null, settings);
     if(!(result < 0)) {

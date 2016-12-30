@@ -82,8 +82,12 @@ profiler.wrap(function() {
             case 'colonizer':
                 colonizer.run(creep);
                 break;
+            case 'bleeder' :
+                bleeder.doBleed(creep);
+                break;
             case 'scavenger':
                 bleeder.scavenge(creep);
+                break;
             default:
                 if(creep.memory.role == 'harvester') {
                     creep.room.memory.harvesterCount += 1;
@@ -132,7 +136,7 @@ profiler.wrap(function() {
         }
         
         if(spawner.room.memory.noEnergy == true && spawner.room.memory.targetWorkerCount > MINIMUM_WORKERS) {
-            spawner.room.memory.targetWorkerCount -= 0.01;
+            spawner.room.memory.targetWorkerCount -= 0.005;
             console.log(spawner, 'target workers decreasing to', spawner.room.memory.targetWorkerCount);
         }
         else if(spawner.room.energyAvailable == spawner.room.energyCapacityAvailable) {
@@ -150,9 +154,12 @@ profiler.wrap(function() {
                 spawner.createScaledWorker({role:'worker', mode:'unassigned'});
                 console.log(spawner, 'spawning generic worker due to high energy');
             }
+            else if(!('test' in Game.creeps)) {
+                spawner.createCreep([TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, MOVE], 'test', {role:'bleeder', noHeal: true});
+            }
             // else if(distanceHarvesterCount < 1) {
             //     //These tend to truck stuff far enough that the extra capacity relative to work modules is worth it.
-            //     spawner.createSymmetricalWorker({role:'distanceHarvester', flag:'distanceHarvestA', destination:'W2N68'});
+            //     spawner.createSymmetricalWorker({role:'distanceHarvester', flag:'distanceHarvestB', destination:spawner.room.name});
             //     console.log('Spawning remote harvester');
             // }
             // else {
