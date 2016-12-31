@@ -80,13 +80,22 @@ profiler.wrap(function() {
                 creep.moveToNewRoom();
                 break;
             case 'colonizer':
-                colonizer.run(creep);
+                colonizer.claim(creep);
+                break;
+            case 'reserver':
+                colonizer.reserve(creep);
                 break;
             case 'bleeder' :
                 bleeder.doBleed(creep);
                 break;
             case 'scavenger':
                 bleeder.scavenge(creep);
+                break;
+            case 'swarm' :
+                bleeder.swarm(creep);
+                break;
+            case 'blocker' :
+                creep.moveTo(Game.flags[creep.memory.flag]);
                 break;
             default:
                 if(creep.memory.role == 'harvester') {
@@ -110,7 +119,7 @@ profiler.wrap(function() {
         var spawner = Game.spawns[spawnName];
         console.log(spawner.room,
                 'generic:', spawner.room.memory.genericCount,
-                'upgrader', spawner.room.memory.upgraderCount,
+                'upgrader:', spawner.room.memory.upgraderCount,
                 'remote:', distanceHarvesterCount,
                 'transports:', spawner.room.memory.transportCount);
         // console.log(spawner.room, 'energy', spawner.room.energyAvailable, 'of', spawner.room.energyCapacityAvailable);
@@ -135,8 +144,25 @@ profiler.wrap(function() {
             console.log('spawning generic worker due to low count');
         }
         
+        // if(!('blocker' in Game.creeps)) {
+        //     spawner.createCreep([MOVE], 'blocker', {role:'blocker', flag:'blocker'});
+        // }
+        // else if(!('blocker2' in Game.creeps)) {
+        //     spawner.createCreep([MOVE], 'blocker2', {role:'blocker', flag:'block2'});
+        // }
+        // else if(!('blocker3' in Game.creeps)) {
+        //     spawner.createCreep([MOVE], 'blocker3', {role:'blocker', flag:'block3'});
+        // }
+        // else if(!('blocker4' in Game.creeps)) {
+        //     spawner.createCreep([MOVE], 'blocker4', {role:'blocker', flag:'block4'});
+        // }
+        // else if(!('blocker5' in Game.creeps)) {
+        //     spawner.createCreep([MOVE], 'blocker5', {role:'blocker', flag:'block5'});
+        // }
+        
+        
         if(spawner.room.memory.noEnergy == true && spawner.room.memory.targetWorkerCount > MINIMUM_WORKERS) {
-            spawner.room.memory.targetWorkerCount -= 0.005;
+            spawner.room.memory.targetWorkerCount -= 0.01;
             console.log(spawner, 'target workers decreasing to', spawner.room.memory.targetWorkerCount);
         }
         else if(spawner.room.energyAvailable == spawner.room.energyCapacityAvailable) {
@@ -154,13 +180,33 @@ profiler.wrap(function() {
                 spawner.createScaledWorker({role:'worker', mode:'unassigned'});
                 console.log(spawner, 'spawning generic worker due to high energy');
             }
-            else if(!('test' in Game.creeps)) {
-                spawner.createCreep([TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, MOVE], 'test', {role:'bleeder', noHeal: true});
+            else if(distanceHarvesterCount < 5) {
+                //These tend to truck stuff far enough that the extra capacity relative to work modules is worth it.
+                spawner.createSymmetricalWorker({role:'distanceHarvester', flag:'distanceHarvestB', destination:spawner.room.name});
+                console.log('Spawning remote harvester');
             }
-            // else if(distanceHarvesterCount < 1) {
-            //     //These tend to truck stuff far enough that the extra capacity relative to work modules is worth it.
-            //     spawner.createSymmetricalWorker({role:'distanceHarvester', flag:'distanceHarvestB', destination:spawner.room.name});
-            //     console.log('Spawning remote harvester');
+            // else if(!('reserveB' in Game.creeps)) {
+            //     spawner.createCreep([CLAIM, CLAIM, MOVE, MOVE], 'reserveB', {role:'reserver', flag:'distanceHarvestB'});
+            // }
+            else if(!('bleeder' in Game.creeps)) {
+                let result = spawner.createCreep([TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, MOVE], 'bleeder', {role:'bleeder', rally:'bleedRally', noHeal: true});
+                console.log('Spawning bleeder 1', result);
+            }
+            else if(!('bleeder2' in Game.creeps)) {
+                let result = spawner.createCreep([TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, MOVE], 'bleeder2', {role:'bleeder', rally:'bleedRally2', noHeal: true});
+                console.log('Spawning bleeder 2', result);
+            }
+            else if(!('bleeder3' in Game.creeps)) {
+                let result = spawner.createCreep([TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, MOVE], 'bleeder3', {role:'bleeder', rally:'bleedRally3', noHeal: true});
+                console.log('Spawning bleeder 3', result);
+            }
+            else if(!('bleeder4' in Game.creeps)) {
+                let result = spawner.createCreep([TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, MOVE], 'bleeder4', {role:'bleeder', rally:'bleedRally4', noHeal: true});
+                console.log('Spawning bleeder 4', result);
+            }
+            // else {
+            //     let result = spawner.createCreep([TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, ATTACK, RANGED_ATTACK, MOVE, MOVE, HEAL, HEAL, HEAL, MOVE], null, {role:'swarm', rally:'bleedRally', target:'attack1', noHeal: true});
+            //     console.log('Spawning swarmer', result);
             // }
             // else {
             //     console.log(spawner, 'spawning creep for transit');

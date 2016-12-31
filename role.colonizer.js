@@ -8,7 +8,7 @@
  */
 
 module.exports = {
-    run: function(creep) {
+    claim: function(creep) {
         var dest = Game.flags['Attack1'];
         if(creep.pos.roomName != dest.pos.roomName) {
             creep.moveTo(dest);
@@ -17,6 +17,17 @@ module.exports = {
             var target = creep.room.controller;
             creep.moveTo(target);
             var result = creep.claimController(target);
+        }
+    },
+    reserve: function(creep) {
+        let dest = Game.flags[creep.memory.flag];
+        if(creep.pos.roomName != dest.pos.roomName) {
+            creep.moveTo(dest);
+        }
+        else {
+            let target = creep.room.controller;
+            creep.moveTo(target);
+            let result = creep.reserveController(target);
         }
     }
 }

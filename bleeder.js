@@ -18,6 +18,47 @@ Creep.prototype.moveToFlag = function() {
     }
 }
 
+Creep.prototype.autoHeal = function() {
+    let hits = this.hits;
+    let max = this.hitsMax;
+    if(hits < max) {
+        console.log(this.name, 'healing self');
+        return this.heal(this);
+    }
+    else {
+        let ally = this.pos.findClosestByRange(FIND_MY_CREEPS, { filter: (creep) => creep.hits < creep.hitsMax });
+        let rangeToAlly = this.pos.getRangeTo(ally);
+        if(rangeToAlly == 1) {
+            console.log(this.name, 'healing close ally', ally.name, 'range', rangeToAlly);
+            return this.heal(ally);
+        }
+        else if(rangeToAlly <= 3) {
+            console.log(this.name, 'healing far ally', ally.name, 'range', rangeToAlly);
+            return this.rangedHeal(ally);
+        }
+        else {
+            return ERR_NOT_IN_RANGE;
+        }
+    }
+}
+
+Creep.prototype.autoAttack = function() {
+    let target = this.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
+    if(!target) {
+        target = this.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES);
+    }
+    if(!target) {
+        return;
+    }
+    if(this.pos.isNearTo(target)) {
+        this.rangedMassAttack();
+        this.attack(target);
+    }
+    else {
+        this.rangedAttack(target);
+    }
+}
+
 module.exports = {
     scavenge: function(creep) {
         if(creep.carry.energy == 0) {
@@ -67,11 +108,34 @@ module.exports = {
         creep.moveTo(target);
         creep.dismantle(target);
     },
+    swarm: function(creep) {
+        creep.autoHeal();
+        let rally = Game.flags[creep.memory.rally].pos;
+        if(!creep.memory.inPosition) {
+            console.log(creep.name, 'swarmer getting in position', creep.pos, rally, creep.memory.inPosition);
+            creep.loggedMove(rally);
+            if(creep.pos.x == rally.x && creep.pos.y == rally.y) {
+                creep.memory.inPosition = true;
+            }
+        }
+        else {
+            creep.autoAttack();
+            if(creep.hitsMax - creep.hits > 80) {
+                console.log(creep.name, 'swarmer retreating', creep.hitsMax, creep.hits);
+                creep.moveTo(rally);
+            }
+            else {
+                console.log(creep.name, 'swarmer swarming target');
+                let target = Game.flags[creep.memory.target].pos;
+                creep.moveTo(target);
+            }
+        }
+    },
     doBleed: function(creep) {
-        let rally = Game.flags['bleedRally'].pos;
+        let rally = Game.flags[creep.memory.rally].pos;
         if(!creep.memory.inPosition) {
             console.log(creep.name, 'bleeder getting in position', creep.pos, rally, creep.memory.inPosition);
-            creep.moveTo(rally);
+            creep.loggedMove(rally);
             if(creep.pos.x == rally.x && creep.pos.y == rally.y) {
                 creep.memory.inPosition = true;
             }
@@ -79,90 +143,16 @@ module.exports = {
         else {
             let hits = creep.hits;
             let max = creep.hitsMax;
-            console.log(creep.name, 'bleeder operating', hits, max, creep.pos);
-            if(hits < max) {
-                let result = creep.heal(creep);
-                console.log(creep.name, 'healing', result);
-            }
-            else {
-                let ally = creep.pos.findClosestByRange(FIND_MY_CREEPS, { filter: (creep) => creep.hits < creep.hitsMax });
-                let rangeToAlly = creep.pos.getRangeTo(ally);
-                if(rangeToAlly == 1) {
-                    creep.heal(ally);
-                }
-                else if(rangeToAlly <= 3) {
-                    creep.rangedHeal(ally);
-                }
-            }
+            console.log(creep.name, 'operating', hits, max, creep.pos);
+            creep.autoHeal();
             let room = creep.room;
-            if(room.name == rally.roomName) {
-                if(max - hits < 100) {
+            // if(room.name == rally.roomName) {
+                if(max - hits < 96) {
                     creep.move(TOP);
                 }
                 else {
                     creep.moveTo(rally);
                 }
-            }
-            // if(room.name != 'W13N76') {
-            //     var enemyStructures = creep.pos.findInRange(FIND_HOSTILE_STRUCTURES, 3);
-            //     if(enemyStructures.length > 0) {
-            //         creep.rangedMassAttack();
-            //         console.log(creep.name, 'smartbombing structures');
-            //     }
-            //     else {
-            //         var roads = creep.pos.findInRange(FIND_STRUCTURES, 3, {filter: (structure) => structure.structureType == STRUCTURE_ROAD});
-            //         var fired = false;
-            //         // for(var i = 0; !fired && i < roads.length; i++) {
-            //         //     var road = roads[i];
-            //         //     if(road.hits == road.hitsMax) {
-            //         //         creep.rangedAttack(road);
-            //         //         console.log(creep.name, 'firing on undamaged road at', road.pos);
-            //         //         fired = true;
-            //         //     }
-            //         // }
-            //         if(!fired) {
-            //             var hostiles = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3);
-            //             if(hostiles.length == 1) {
-            //                 creep.rangedAttack(hostiles[0])
-            //             }
-            //             else if(hostiles.length > 1) {
-            //                 creep.rangedMassAttack();
-            //             }
-            //             // else if(roads.length > 0 && roads[0].hits > 2000) {
-            //             //     creep.rangedAttack(roads[0]);
-            //             //     console.log(creep.name, 'firing on damaged road at', roads[0].pos);
-            //             // }
-            //             // else {
-            //             //     var walls = creep.pos.findInRange(FIND_STRUCTURES, 3, {filter: (structure) => structure.structureType == STRUCTURE_WALL});
-            //             //     creep.rangedAttack(walls[0]);
-            //             // }
-            //         }
-            //     }
-            // }
-            // if(creep.memory.aggressive == true && room.name != 'W13N76') {
-            //     var target = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES,
-            //                 {filter: (structure) => !(structure.structureType == STRUCTURE_CONTROLLER /*||
-            //                                             structure.structureType == STRUCTURE_STORAGE*/)});
-            //     // var targets = creep.room.find(FIND_HOSTILE_CREEPS);
-            //     // if(targets.length > 0) {
-            //     //     creep.moveTo(targets[0]);
-            //     // }
-            //     creep.moveTo(target);
-            // }
-            // if((max - hits)/12 > creep.ticksToLive) {
-            //     creep.move(LEFT);
-            //     console.log(creep.name, 'charging; ticks to live:', creep.ticksToLive);
-            // }
-            // else if(hits >= (max - 99) && (room.name == 'W1N69' || creep.pos.x == 49)) {
-            //     var result = creep.move(LEFT);
-            //     // console.log('>> bleeder moving left', result);
-            // }
-            // else if(hits < max && (room.name != 'W1N69' || creep.pos.x == 0)) {
-            //     var result = creep.move(RIGHT);
-            //     // console.log('>> bleeder moving right', result);
-            // }
-            // else {
-            //     // console.log('>> bleeder waiting');
             // }
         }
     },
