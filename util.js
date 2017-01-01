@@ -7,6 +7,10 @@
  * mod.thing == 'a thing'; // true
  */
 
+RoomPosition.prototype.isEdge = function() {
+    return this.x == 0 || this.y == 0 || this.x >= 49 || this.y >= 49
+}
+
 module.exports.createScalingCreep = function(spawn, settings) {
     var energy = spawn.room.energyAvailable;
     // var block = [WORK, CARRY, MOVE];

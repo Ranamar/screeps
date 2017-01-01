@@ -168,7 +168,7 @@ Creep.prototype.clearMode = function() {
 
 Creep.prototype.moveToNewRoom = function() {
     console.log(this.name, 'moving rooms from', this.pos.roomName, 'to', this.memory.destination);
-    if(this.pos.roomName == this.memory.destination) {
+    if(this.pos.roomName == this.memory.destination && !this.pos.isEdge()) {
         this.memory.role = this.memory.destRole;
         delete this.memory.destRole;
         //XXX danger: only works with workers
