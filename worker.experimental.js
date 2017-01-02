@@ -17,11 +17,11 @@ var dedicatedUpgrader = function(creep) {
             creep.loggedMove(target);
         }
     }
-    if(creep.carry.energy >= 15) {
+    if(creep.carry.energy > 0) {
         let target = creep.room.controller;
         let result = creep.upgradeController(target);
         // console.log(creep.name, 'trying to upgrade', target, result);
-        if(result == ERR_NOT_IN_RANGE) {
+        if(result == ERR_NOT_IN_RANGE && creep.carry.energy > 15) {
             creep.loggedMove(target);
         }
     }
@@ -91,7 +91,7 @@ var energyTransport = function(creep) {
         //     creep.memory.pickup = true;
         // }
         // else {
-        //     creep.memory.pickup = false;
+            creep.memory.pickup = false;
             let sourceLinks = creep.room.getSourceLinks();
             let targetLink = creep.pos.findClosestByPath(sourceLinks, {filter: (link) => link.energy >= 100});
             if(!targetLink) {

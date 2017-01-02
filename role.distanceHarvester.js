@@ -41,12 +41,12 @@ var roleDistanceHarvester = {
                 }
                 let target = Game.getObjectById(creep.memory.target);
                 let result = creep.gatherEnergy(target);
-                if(result == ERR_NOT_IN_RANGE) {
+                if(result == ERR_NOT_IN_RANGE || (result == ERR_NOT_ENOUGH_ENERGY && target.ticksToRegeneration < 50)) {
                     creep.moveTo(target);
                 }
                 else if(result == ERR_NOT_ENOUGH_ENERGY) {
                     creep.unregisterGathering();
-                    if(creep.carry.energy > 20) {
+                    if(creep.carry.energy > creep.carryCapacity/3) {
                         creep.memory.harvesting = false;
                         roleDistanceHarvester.upgradeAtDestination(creep);
                     }
