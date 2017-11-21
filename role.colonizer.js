@@ -9,7 +9,7 @@
 
 module.exports = {
     claim: function(creep) {
-        var dest = Game.flags['Attack1'];
+        var dest = Game.flags['colonize'];
         if(creep.pos.roomName != dest.pos.roomName) {
             creep.moveTo(dest);
         }

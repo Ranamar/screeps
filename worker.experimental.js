@@ -84,6 +84,7 @@ Room.prototype.getSourceLinks = function() {
 
 var energyTransport = function(creep) {
     if(creep.carry.energy == 0 && !creep.memory.collecting) {
+        // console.log(creep.name, 'no energy, not collecting');
         creep.memory.storing = false;
         creep.memory.collecting = true;
         // if(creep.room.memory.tasks.droppedEnergy.length > 0) {
@@ -91,7 +92,7 @@ var energyTransport = function(creep) {
         //     creep.memory.pickup = true;
         // }
         // else {
-            creep.memory.pickup = false;
+            // creep.memory.pickup = false;
             let sourceLinks = creep.room.getSourceLinks();
             let targetLink = creep.pos.findClosestByPath(sourceLinks, {filter: (link) => link.energy >= 100});
             if(!targetLink) {
@@ -103,15 +104,29 @@ var energyTransport = function(creep) {
         // }
     }
     else if(creep.carry.energy > 0 && !creep.memory.storing) {
+        // console.log(creep.name, 'energy, not storing');
         creep.memory.storing = true;
         creep.memory.collecting = false;
         //Find a place to store
         let closest = creep.pos.findClosestByPath(creep.room.memory.tasks.needEnergy, {filter: (structure) => structure.structureType != STRUCTURE_LINK});
-        if(!closest) {
-            closest = creep.room.storage;
+        if(closest) {
+            creep.memory.target = closest.id;
         }
-        creep.memory.target = closest.id;
+        else {
+            if(creep.room.terminal && creep.room.terminal.store[RESOURCE_ENERGY] < 50000) {
+                creep.memory.target = creep.room.terminal.id;
+            }
+            else if(creep.room.storage) {
+                creep.memory.target = creep.room.storage.id;
+            }
+            else {
+                creep.memory.storing = false;
+            }
+        }
     }
+    // else {
+    //     console.log(creep.name, 'transport not changing state; storing:', creep.memory.storing, 'collecting:', creep.memory.collecting);
+    // }
     let target = Game.getObjectById(creep.memory.target);
     if(creep.memory.storing) {
         let result;
@@ -128,10 +143,62 @@ var energyTransport = function(creep) {
             creep.memory.storing = false;
         }
     }
-    else {
+    else if(creep.memory.collecting) {
         let result = creep.withdraw(target, RESOURCE_ENERGY);
         if(result == ERR_NOT_IN_RANGE) {
             creep.loggedMove(target);
+        }
+        else if(result == OK || result == ERR_FULL || result == ERR_NOT_ENOUGH_RESOURCES) {
+            creep.memory.collecting = false;
+        }
+    }
+}
+
+//XXX This is a quick hack to pay a ransom.
+var shiftMinerals = function(creep) {
+    if(!creep.carry[RESOURCE_HYDROGEN] && !creep.memory.collecting) {
+        console.log(creep.name, 'no minerals, not collecting');
+        creep.memory.storing = false;
+        creep.memory.collecting = true;
+        if(creep.room.storage) {
+            creep.memory.target = creep.room.storage.id;
+        }
+        else {
+            console.log(creep.name, 'is missing a storage unit');
+            creep.memory.collecting = false;
+        }
+    }
+    else if(creep.carry[RESOURCE_HYDROGEN] > 0 && !creep.memory.storing) {
+        console.log(creep.name, 'minerals, not storing');
+        creep.memory.storing = true;
+        creep.memory.collecting = false;
+        //Find a place to store
+        if(creep.room.terminal) {
+            creep.memory.target = creep.room.terminal.id;
+        }
+        else {
+            console.log(creep.name, 'has nowhere to shift minerals to.');
+            creep.memory.storing = false;
+        }
+    }
+    let target = Game.getObjectById(creep.memory.target);
+    if(creep.memory.storing) {
+        let result;
+        result = creep.transfer(target, RESOURCE_HYDROGEN);
+        if(result == ERR_NOT_IN_RANGE) {
+            creep.loggedMove(target);
+        }
+        else if(result == OK || result == ERR_FULL) {
+            creep.memory.storing = false;
+        }
+    }
+    else if(creep.memory.collecting) {
+        let result = creep.withdraw(target, RESOURCE_HYDROGEN);
+        if(result == ERR_NOT_IN_RANGE) {
+            creep.loggedMove(target);
+        }
+        else if(result == OK || result == ERR_FULL || result == ERR_NOT_ENOUGH_RESOURCES) {
+            creep.memory.collecting = false;
         }
     }
 }
@@ -146,6 +213,9 @@ module.exports.runExperimental = function(creep) {
             break;
         case 'harvester':
             dedicatedHarvester(creep);
+            break;
+        case 'gofer':
+            shiftMinerals(creep);
             break;
         default:
             break;

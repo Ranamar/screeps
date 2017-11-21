@@ -1,7 +1,6 @@
 Structure.prototype.needsEnergy = function() {
     return (this.structureType == STRUCTURE_EXTENSION ||
             this.structureType == STRUCTURE_SPAWN ||
-            //this.structureType == STRUCTURE_LINK ||
             this.structureType == STRUCTURE_TOWER)
             && this.energy < this.energyCapacity;
 }

@@ -9,7 +9,7 @@ const creep_life = 1500;
 const part_cost = 50;
 const MIN_VALUABLE_ROAD_SCORE = (road_cost*5/4)*(analytics.sampleSpan*analytics.sampleCount/road_life)*(creep_life/part_cost);
 
-const WALL_TARGET_STRENGTH = 2500000;
+const WALL_TARGET_STRENGTH = 750000;
 const MIN_DAMAGE_TO_REPAIR = 800;
 
 Structure.prototype.needsRepairs = function() {
@@ -36,14 +36,13 @@ StructureRampart.prototype.targetHP = function() {
 //This pings if a short-range heal from a tower will put it near max health.
 Structure.prototype.needsMaintenance = function() {
     let damage = this.targetHP() - this.hits;
-    //bit at the end is to cause towers to repair 1hp ramparts
-    return (damage >= MIN_DAMAGE_TO_REPAIR) && (damage < MIN_DAMAGE_TO_REPAIR*2) || this.hits < MIN_DAMAGE_TO_REPAIR;
+    return (damage >= MIN_DAMAGE_TO_REPAIR) && (damage < MIN_DAMAGE_TO_REPAIR*2);
 };
 
 StructureRampart.prototype.needsMaintenance = function() {
     let damage = this.targetHP() - this.hits;
     //For ramparts, we have towers put the first slug of HP into it so it doesn't accidentally decay.
-    return (damage >= MIN_DAMAGE_TO_REPAIR) && (damage < MIN_DAMAGE_TO_REPAIR*2) || (this.hits < 200);
+    return (damage >= MIN_DAMAGE_TO_REPAIR) && (damage < MIN_DAMAGE_TO_REPAIR*2) || (this.hits < MIN_DAMAGE_TO_REPAIR);
 };
 
 StructureRoad.prototype.needsMaintenance = function() {

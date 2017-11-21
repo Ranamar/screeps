@@ -90,18 +90,18 @@ Creep.prototype.localMaintenance = function() {
 }
 
 Creep.prototype.findJob = function() {
-    // if(this.memory.mode == 'harvest') {
-    //     let target = Game.getObjectById(this.memory.target);
-        // if(target.energy == 0 && this.room.storage && this.room.storage.store.energy > 0) {
-        //     let job = {
-        //         job: 'getenergy',
-        //         target: this.room.storage.id
-        //     };
-        //     // console.log(this.name, job.job, job.target, this.room.storage);
-        //     this.assignJob(job);
-        //     return;
-        // }
-    // }
+    if(this.memory.mode == 'harvest') {
+        let target = Game.getObjectById(this.memory.target);
+        if(target.energy == 0 && this.room.storage && this.room.storage.store.energy > 0) {
+            let job = {
+                job: 'getenergy',
+                target: this.room.storage.id
+            };
+            // console.log(this.name, job.job, job.target, this.room.storage);
+            this.assignJob(job);
+            return;
+        }
+    }
     var job = dispatcher.assignJob(this);
     this.assignJob(job);
 }

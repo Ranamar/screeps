@@ -65,17 +65,6 @@ var assignWorkerJob = function(creep) {
         return null;
     }
     var task = null;
-    //resource return - confuses everything else
-    if(creep.room.storage) {
-        for(let resource in creep.carry) {
-            if(resource != RESOURCE_ENERGY && creep.carry[resource] > 0) {
-            return {
-                    job: 'storeall',
-                    target: creep.room.storage.id
-                };
-            }
-        }
-    }
     //resource pickup - decays 50% in 600 turns
     // This code needs work because it does not handle stuff on the far side of walls well.
     if(tasks.droppedEnergy.length > 0) {
@@ -84,6 +73,17 @@ var assignWorkerJob = function(creep) {
             return {
                 job: 'pickup',
                 target: energyTarget.id
+            }
+        }
+    }
+    //resource return - confuses everything else but pickup
+    if(creep.room.storage) {
+        for(let resource in creep.carry) {
+            if(resource != RESOURCE_ENERGY && creep.carry[resource] > 0) {
+            return {
+                    job: 'storeall',
+                    target: creep.room.storage.id
+                };
             }
         }
     }
@@ -175,6 +175,7 @@ var refreshTasks = function(room) {
 }
 
 var searchTasks = function(room) {
+    console.log('>> refreshing tasks from game state');
     var construction = room.find(FIND_CONSTRUCTION_SITES);
     
     var needEnergy = room.find(FIND_MY_STRUCTURES, {filter: (structure) => structure.needsEnergy()});
@@ -200,7 +201,8 @@ var searchTasks = function(room) {
 var findTasks = function(room) {
     var results;
     
-    if(!room.memory.tasks || room.memory.tasks.staleness > 10) {
+    //TODO magic numbers
+    if(!room.memory.tasks || room.memory.tasks.staleness > 15) {
         results = dispatcher.searchTasks(room);
     }
     else {

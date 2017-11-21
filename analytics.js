@@ -61,8 +61,8 @@ Creep.prototype.loggedMove = function(dest) {
 }
 
 const road_cost = 300;
-const sample_span = 250;
-const sample_count = 6;
+const sample_span = 300;
+const sample_count = 5;
 const road_life = 50000;
 const creep_life = 1500;
 const part_cost = 50;

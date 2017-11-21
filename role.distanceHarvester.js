@@ -29,7 +29,8 @@ var roleDistanceHarvester = {
         if(creep.carry.energy == creep.carryCapacity) {
             creep.memory.harvesting = false;
             creep.unregisterGathering();
-            roleDistanceHarvester.upgradeAtDestination(creep);
+            // roleDistanceHarvester.upgradeAtDestination(creep);
+            roleDistanceHarvester.storeAtHome(creep);
 
         // go to the target room, then find an energy in it and nom away
         } else if(creep.memory.harvesting) {
@@ -48,28 +49,30 @@ var roleDistanceHarvester = {
                     creep.unregisterGathering();
                     if(creep.carry.energy > creep.carryCapacity/3) {
                         creep.memory.harvesting = false;
-                        roleDistanceHarvester.upgradeAtDestination(creep);
+                        // roleDistanceHarvester.upgradeAtDestination(creep);
+                        roleDistanceHarvester.storeAtHome(creep);
                     }
                 }
             }
         } else {
             // default to going home
-            roleDistanceHarvester.upgradeAtDestination(creep);
+            // roleDistanceHarvester.upgradeAtDestination(creep);
+            roleDistanceHarvester.storeAtHome(creep);
         }
     },
 
     storeAtHome: function(creep) {
-        if(creep.room.name != Memory.home) {
-            creep.moveTo(Game.rooms[Memory.home].controller);
-            analytics.logStep(creep);
-        } else {
-            var storage = Game.rooms[Memory.home].storage;
-            switch(creep.transfer(storage, RESOURCE_ENERGY)) {
-                case ERR_NOT_IN_RANGE:
-                    creep.loggedMove(storage);
-                    break;
-            }
+        if(creep.pos.roomName != creep.memory.destination) {
+            creep.loggedMove(Game.rooms[creep.memory.destination].storage);
+            return;
         }
+        let storage =
+            creep.pos.findClosestByPath(FIND_MY_STRUCTURES,
+                {filter:(structure) => structure.structureType == STRUCTURE_LINK || structure.structureType == STRUCTURE_STORAGE});
+            // Game.rooms[creep.memory.home].storage;
+        roleDistanceHarvester.layOrRepairRoads(creep);
+        creep.loggedMove(storage);
+        creep.transfer(storage, RESOURCE_ENERGY);
     },
     
     upgradeAtDestination: function(creep) {
